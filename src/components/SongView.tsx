@@ -777,7 +777,7 @@ export function SongView({ song }: SongViewProps) {
         transpose={transpose}
         onTransposeChange={setTranspose}
         zoom={zoom}
-        onZoomChange={setZoom}
+        onZoomChange={handleZoomChange}
         showChordPanel={showChordPanel}
         onToggleChordPanel={() => setShowChordPanel(!showChordPanel)}
         wakeLockEnabled={wakeLockEnabled}
