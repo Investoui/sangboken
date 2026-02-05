@@ -52,15 +52,15 @@ const hurraForDegChordPro = `
 {key: D}
 
 {verse: Vers 1}
-[D]Hurra for deg som [A7]fyller ditt [D]år!
-[A7]Ja, deg vil vi gratu[D]lere!
-[D]Alle i ring omkring deg vi [A7]står,
-og [D]se, nå vil vi [A7]mar[D]sjere,
-[G]bukke, nikke, neie, snu oss [D]omkring,
-[B7]danse så for deg med hopp og sprett og [Em]spring,
-[A7]ønske deg av hjertet [D]alle gode [A7]ting
-og [D]si meg så, hva vil du [A7]me[D]re?
-[A7]Gratu[D]lere!
+[D]Hurra for deg som [A7]fyl-ler ditt år!
+Ja, [D]deg vil vi gra-tu-[A7]le-[D]re!
+[D]Alle i ring om-[A7]kring deg vi står,
+og [D]se, nå vil vi mar-[A7]sje-[D]re,
+[G]bukke, nikke, neie, [D]snu oss omkring,
+[A7]danse så for deg med [D]hopp og sprett og spring,
+[G]ønske deg av hjertet [D]alle gode [H7]ting
+og [Em]si meg så, hva vil du [A7]me[D]re?
+Gratu-[A7]le-[D]re!
 
 {verse: Vers 2}
 [D]Høyt våre flagg vi [A7]svinger, [D]hurra!
