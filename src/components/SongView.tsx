@@ -407,7 +407,7 @@ function OverlayControls({
         </div>
 
         {/* Controls row */}
-        <div className="flex items-center justify-center gap-4 flex-wrap">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
           {/* Transpose controls */}
           <div className="flex items-center gap-2">
             <button
@@ -450,7 +450,7 @@ function OverlayControls({
           {/* Keep screen on toggle */}
           <button
             onClick={handleToggleWakeLock}
-            className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-5 whitespace-nowrap transition-all ${
+            className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 whitespace-nowrap transition-all ${
               wakeLockEnabled
                 ? wakeLockActive
                   ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
@@ -459,7 +459,7 @@ function OverlayControls({
             }`}
           >
             {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
-            <span className="text-sm font-medium">Hold skjerm på</span>
+            <span className="text-sm font-medium">Behold skjermen på</span>
           </button>
         </div>
       </div>
