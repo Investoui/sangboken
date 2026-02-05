@@ -158,9 +158,10 @@ function TabDisplay({ song }: { song: Song }) {
   );
 }
 
-// Helper to count total lines in a song
-function countSongLines(sections: SongSection[]): number {
-  return sections.reduce((total, section) => total + section.lines.length, 0);
+// Helper to find max lines in any single verse
+function maxLinesPerVerse(sections: SongSection[]): number {
+  if (sections.length === 0) return 0;
+  return Math.max(...sections.map(section => section.lines.length));
 }
 
 // Song Display component
@@ -180,9 +181,9 @@ function SongDisplay({
 
   const sections = song.sections;
   
-  // Determine if song is "long" - more than 10 lines means vertical scroll
-  const totalLines = countSongLines(sections);
-  const isLongSong = totalLines > 10;
+  // Determine if verses are "long" - more than 5 lines per verse means vertical scroll
+  const maxLines = maxLinesPerVerse(sections);
+  const isLongSong = maxLines > 5;
 
   // Landscape: use more horizontal space, no bottom padding needed
   // Portrait: keep bottom padding for chord panel
