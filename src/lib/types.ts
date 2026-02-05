@@ -19,3 +19,27 @@ export type RoomCommand =
   | { type: "scroll"; position: number }
   | { type: "transpose"; value: number }
   | { type: "setAutoScroll"; enabled: boolean; speed?: number };
+
+// Song data types
+export interface ChordPosition {
+  chord: string;
+  position: number;
+}
+
+export interface SongLine {
+  lyrics: string;
+  chords: ChordPosition[];
+}
+
+export interface SongSection {
+  name: string;
+  lines: SongLine[];
+}
+
+export interface Song {
+  id: string;
+  title: string;
+  artist?: string;
+  key?: string;
+  sections: SongSection[];
+}
