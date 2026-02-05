@@ -4,6 +4,41 @@ const ROOM_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 const rooms = new Map<string, RoomState>();
 
+// SSE subscribers for each room
+type RoomSubscriber = (state: RoomState) => void;
+const subscribers = new Map<string, Set<RoomSubscriber>>();
+
+export function subscribeToRoom(
+  code: string,
+  callback: RoomSubscriber
+): () => void {
+  const upperCode = code.toUpperCase();
+  if (!subscribers.has(upperCode)) {
+    subscribers.set(upperCode, new Set());
+  }
+  subscribers.get(upperCode)!.add(callback);
+
+  // Return unsubscribe function
+  return () => {
+    const subs = subscribers.get(upperCode);
+    if (subs) {
+      subs.delete(callback);
+      if (subs.size === 0) {
+        subscribers.delete(upperCode);
+      }
+    }
+  };
+}
+
+function notifySubscribers(code: string, state: RoomState): void {
+  const subs = subscribers.get(code.toUpperCase());
+  if (subs) {
+    for (const callback of subs) {
+      callback(state);
+    }
+  }
+}
+
 function generateRoomCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   let code = "";
@@ -66,6 +101,7 @@ export function updateRoom(
     return undefined;
   }
   Object.assign(room, updates, { lastActivity: Date.now() });
+  notifySubscribers(code, room);
   return room;
 }
 
