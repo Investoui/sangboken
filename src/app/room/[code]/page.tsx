@@ -1,70 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { RoomState } from "@/lib/types";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { RoomState, SongSection, SongLine } from "@/lib/types";
 import { ChordDiagram } from "@/components/ChordDiagram";
 import { transposeChord } from "@/lib/transpose";
+import { getSong } from "@/lib/songs";
 
-// Demo song data structure for chord rendering
-// This will be replaced with real data from US-009
-interface ChordPosition {
-  chord: string;
-  position: number;
+interface ChordLineProps {
+  line: SongLine;
+  transpose: number;
 }
 
-interface SongLine {
-  lyrics: string;
-  chords: ChordPosition[];
-}
-
-interface SongSection {
-  name: string;
-  lines: SongLine[];
-}
-
-// Demo song to showcase chord rendering
-const demoSong: SongSection[] = [
-  {
-    name: "Verse",
-    lines: [
-      {
-        lyrics: "Twinkle twinkle little star",
-        chords: [
-          { chord: "C", position: 0 },
-          { chord: "F", position: 15 },
-          { chord: "C", position: 22 },
-        ],
-      },
-      {
-        lyrics: "How I wonder what you are",
-        chords: [
-          { chord: "C", position: 0 },
-          { chord: "G", position: 15 },
-          { chord: "C", position: 24 },
-        ],
-      },
-      {
-        lyrics: "Up above the world so high",
-        chords: [
-          { chord: "F", position: 0 },
-          { chord: "C", position: 13 },
-          { chord: "G", position: 20 },
-        ],
-      },
-      {
-        lyrics: "Like a diamond in the sky",
-        chords: [
-          { chord: "F", position: 0 },
-          { chord: "C", position: 12 },
-          { chord: "G", position: 20 },
-          { chord: "C", position: 24 },
-        ],
-      },
-    ],
-  },
-];
-
-function ChordLine({ line, transpose }: { line: SongLine; transpose: number }) {
+function ChordLine({ line, transpose }: ChordLineProps) {
   // Create chord overlay by positioning chords above the right character
   const chordPositions = line.chords.map((c) => ({
     ...c,
@@ -107,30 +54,6 @@ function extractChordsFromSection(section: SongSection, transpose: number = 0): 
     }
   }
   return chords;
-}
-
-function SongDisplay({
-  sections,
-  currentSection,
-  transpose,
-}: {
-  sections: SongSection[];
-  currentSection: number;
-  transpose: number;
-}) {
-  const section = sections[currentSection];
-  if (!section) return null;
-
-  return (
-    <div className="p-8 pt-16">
-      <div className="text-amber-500/60 text-sm uppercase tracking-wider mb-4">
-        {section.name}
-      </div>
-      {section.lines.map((line, idx) => (
-        <ChordLine key={idx} line={line} transpose={transpose} />
-      ))}
-    </div>
-  );
 }
 
 // Chord Diagram Panel component
@@ -218,6 +141,12 @@ export default function RoomDisplayPage({
   const [error, setError] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(true);
   const [showChordPanel, setShowChordPanel] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollRef = useRef<number | null>(null);
+
+  // Get the current song from the library
+  const currentSong = roomState?.currentSong ? getSong(roomState.currentSong) : null;
+  const sections = currentSong?.sections || [];
 
   // Resolve params
   useEffect(() => {
@@ -264,6 +193,68 @@ export default function RoomDisplayPage({
     };
   }, [roomCode]);
 
+  // Auto-scroll functionality
+  const performAutoScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container || !roomState?.autoScroll) return;
+
+    // Calculate scroll speed based on autoScrollSpeed (1=slow, 2=medium, 3=fast)
+    // Pixels per frame at 60fps: slow=0.5, medium=1.5, fast=3
+    const speedMultiplier = roomState.autoScrollSpeed === 1 ? 0.5
+      : roomState.autoScrollSpeed === 2 ? 1.5
+      : 3;
+
+    const maxScroll = container.scrollHeight - container.clientHeight;
+    const currentScroll = container.scrollTop;
+
+    // Stop at end of song
+    if (currentScroll >= maxScroll) {
+      return;
+    }
+
+    // Scroll smoothly
+    container.scrollTop = Math.min(currentScroll + speedMultiplier, maxScroll);
+  }, [roomState]);
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (!roomState?.autoScroll) {
+      // Clear any existing interval when auto-scroll is disabled
+      if (autoScrollRef.current !== null) {
+        cancelAnimationFrame(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
+      return;
+    }
+
+    // Use requestAnimationFrame for smooth scrolling
+    let lastTime = 0;
+    const animate = (time: number) => {
+      // Throttle to ~60fps
+      if (time - lastTime >= 16) {
+        performAutoScroll();
+        lastTime = time;
+      }
+      autoScrollRef.current = requestAnimationFrame(animate);
+    };
+
+    autoScrollRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (autoScrollRef.current !== null) {
+        cancelAnimationFrame(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
+    };
+  }, [roomState?.autoScroll, performAutoScroll]);
+
+  // Reset scroll position when song changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [roomState?.currentSong]);
+
   if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -284,24 +275,54 @@ export default function RoomDisplayPage({
     <div className="min-h-screen bg-black relative">
       {/* Room code badge - fades after 10s */}
       <div
-        className={`fixed top-4 right-4 bg-white/10 px-4 py-2 rounded-lg font-mono text-2xl transition-opacity duration-1000 ${
+        className={`fixed top-4 right-4 bg-white/10 px-4 py-2 rounded-lg font-mono text-2xl transition-opacity duration-1000 z-30 ${
           showCode ? "opacity-100" : "opacity-0"
         }`}
       >
         {roomCode}
       </div>
 
-      {/* Song display */}
-      {roomState.currentSong ? (
+      {/* Song display with scrollable container */}
+      {currentSong && sections.length > 0 ? (
         <>
-          <SongDisplay
-            sections={demoSong}
-            currentSection={roomState.currentSection}
-            transpose={roomState.transpose}
-          />
+          <div
+            ref={scrollContainerRef}
+            className="h-screen overflow-y-auto pb-[220px] scroll-smooth"
+          >
+            {/* Song title */}
+            <div className="p-8 pt-16 pb-4">
+              <h1 className="text-3xl font-bold text-white mb-1">{currentSong.title}</h1>
+              {currentSong.artist && (
+                <div className="text-white/50 text-lg">{currentSong.artist}</div>
+              )}
+              {currentSong.key && roomState.transpose !== 0 && (
+                <div className="text-amber-400/60 text-sm mt-2">
+                  Transposed {roomState.transpose > 0 ? "+" : ""}{roomState.transpose} semitones
+                </div>
+              )}
+            </div>
+
+            {/* All sections displayed */}
+            {sections.map((section, sectionIdx) => (
+              <div key={sectionIdx} className="px-8 pb-8">
+                <div className="text-amber-500/60 text-sm uppercase tracking-wider mb-4">
+                  {section.name}
+                </div>
+                {section.lines.map((line, lineIdx) => (
+                  <ChordLine key={lineIdx} line={line} transpose={roomState.transpose} />
+                ))}
+              </div>
+            ))}
+
+            {/* End of song indicator */}
+            <div className="text-center py-16 text-white/20">
+              — End —
+            </div>
+          </div>
+
           {/* Chord diagram panel */}
           <ChordDiagramPanel
-            sections={demoSong}
+            sections={sections}
             currentSection={roomState.currentSection}
             transpose={roomState.transpose}
             visible={showChordPanel}

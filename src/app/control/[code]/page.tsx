@@ -223,11 +223,67 @@ export default function ControllerPage({
         </div>
       </div>
 
-      {/* Room info */}
-      <div className="text-white/30 text-sm text-center mt-12">
-        <p>
-          Auto-scroll: {roomState.autoScroll ? "On" : "Off"}
-        </p>
+      {/* Auto-scroll controls */}
+      <div className="mb-8">
+        <div className="text-white/60 text-sm mb-3">Auto-Scroll</div>
+
+        {/* Toggle button */}
+        <button
+          onClick={() => sendCommand({
+            type: "setAutoScroll",
+            enabled: !roomState.autoScroll,
+            speed: roomState.autoScrollSpeed
+          })}
+          className={`w-full py-4 rounded-lg text-lg font-medium transition-colors mb-4 ${
+            roomState.autoScroll
+              ? "bg-amber-400/20 border border-amber-400/50 text-amber-400"
+              : "bg-white/10 hover:bg-white/20 active:bg-white/30 text-white"
+          }`}
+        >
+          {roomState.autoScroll ? "⏸ Stop Scrolling" : "▶ Start Scrolling"}
+        </button>
+
+        {/* Speed control */}
+        <div className="bg-white/5 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-white/60 text-sm">Speed</span>
+            <span className="text-amber-400 text-sm font-medium">
+              {roomState.autoScrollSpeed === 1 ? "Slow" : roomState.autoScrollSpeed === 2 ? "Medium" : "Fast"}
+            </span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => sendCommand({ type: "setAutoScroll", enabled: roomState.autoScroll, speed: 1 })}
+              className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${
+                roomState.autoScrollSpeed === 1
+                  ? "bg-amber-400/20 border border-amber-400/50 text-amber-400"
+                  : "bg-white/10 hover:bg-white/20 text-white/70"
+              }`}
+            >
+              Slow
+            </button>
+            <button
+              onClick={() => sendCommand({ type: "setAutoScroll", enabled: roomState.autoScroll, speed: 2 })}
+              className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${
+                roomState.autoScrollSpeed === 2
+                  ? "bg-amber-400/20 border border-amber-400/50 text-amber-400"
+                  : "bg-white/10 hover:bg-white/20 text-white/70"
+              }`}
+            >
+              Medium
+            </button>
+            <button
+              onClick={() => sendCommand({ type: "setAutoScroll", enabled: roomState.autoScroll, speed: 3 })}
+              className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${
+                roomState.autoScrollSpeed === 3
+                  ? "bg-amber-400/20 border border-amber-400/50 text-amber-400"
+                  : "bg-white/10 hover:bg-white/20 text-white/70"
+              }`}
+            >
+              Fast
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
