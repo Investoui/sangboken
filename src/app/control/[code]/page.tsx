@@ -196,10 +196,36 @@ export default function ControllerPage({
         />
       </div>
 
+      {/* Transpose controls */}
+      <div className="mb-8">
+        <div className="text-white/60 text-sm mb-3">Transpose</div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => sendCommand({ type: "transpose", value: roomState.transpose - 1 })}
+            disabled={roomState.transpose <= -6}
+            className="flex-1 bg-white/10 hover:bg-white/20 active:bg-white/30 disabled:bg-white/5 disabled:text-white/30 py-4 rounded-lg text-2xl font-bold transition-colors"
+          >
+            −
+          </button>
+          <div className="w-20 text-center">
+            <div className="text-3xl font-mono font-bold text-amber-400">
+              {roomState.transpose > 0 ? "+" : ""}{roomState.transpose}
+            </div>
+            <div className="text-white/40 text-xs mt-1">semitones</div>
+          </div>
+          <button
+            onClick={() => sendCommand({ type: "transpose", value: roomState.transpose + 1 })}
+            disabled={roomState.transpose >= 6}
+            className="flex-1 bg-white/10 hover:bg-white/20 active:bg-white/30 disabled:bg-white/5 disabled:text-white/30 py-4 rounded-lg text-2xl font-bold transition-colors"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
       {/* Room info */}
       <div className="text-white/30 text-sm text-center mt-12">
-        <p>Transpose: {roomState.transpose > 0 ? "+" : ""}{roomState.transpose}</p>
-        <p className="mt-1">
+        <p>
           Auto-scroll: {roomState.autoScroll ? "On" : "Off"}
         </p>
       </div>

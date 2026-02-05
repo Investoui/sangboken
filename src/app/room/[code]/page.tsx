@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { RoomState } from "@/lib/types";
 import { ChordDiagram } from "@/components/ChordDiagram";
+import { transposeChord } from "@/lib/transpose";
 
 // Demo song data structure for chord rendering
 // This will be replaced with real data from US-009
@@ -63,12 +64,14 @@ const demoSong: SongSection[] = [
   },
 ];
 
-function ChordLine({ line }: { line: SongLine }) {
+function ChordLine({ line, transpose }: { line: SongLine; transpose: number }) {
   // Create chord overlay by positioning chords above the right character
   const chordPositions = line.chords.map((c) => ({
     ...c,
     // Clamp position to lyrics length
     position: Math.min(c.position, line.lyrics.length - 1),
+    // Apply transpose to chord name
+    displayChord: transposeChord(c.chord, transpose),
   }));
 
   return (
@@ -83,7 +86,7 @@ function ChordLine({ line }: { line: SongLine }) {
               left: `${c.position}ch`,
             }}
           >
-            {c.chord}
+            {c.displayChord}
           </span>
         ))}
       </div>
@@ -95,12 +98,12 @@ function ChordLine({ line }: { line: SongLine }) {
   );
 }
 
-// Extract all chords from a section in order
-function extractChordsFromSection(section: SongSection): string[] {
+// Extract all chords from a section in order, with optional transposition
+function extractChordsFromSection(section: SongSection, transpose: number = 0): string[] {
   const chords: string[] = [];
   for (const line of section.lines) {
     for (const chordPos of line.chords) {
-      chords.push(chordPos.chord);
+      chords.push(transposeChord(chordPos.chord, transpose));
     }
   }
   return chords;
@@ -109,9 +112,11 @@ function extractChordsFromSection(section: SongSection): string[] {
 function SongDisplay({
   sections,
   currentSection,
+  transpose,
 }: {
   sections: SongSection[];
   currentSection: number;
+  transpose: number;
 }) {
   const section = sections[currentSection];
   if (!section) return null;
@@ -122,7 +127,7 @@ function SongDisplay({
         {section.name}
       </div>
       {section.lines.map((line, idx) => (
-        <ChordLine key={idx} line={line} />
+        <ChordLine key={idx} line={line} transpose={transpose} />
       ))}
     </div>
   );
@@ -132,16 +137,18 @@ function SongDisplay({
 function ChordDiagramPanel({
   sections,
   currentSection,
+  transpose,
   visible,
   onToggle,
 }: {
   sections: SongSection[];
   currentSection: number;
+  transpose: number;
   visible: boolean;
   onToggle: () => void;
 }) {
   const section = sections[currentSection];
-  const chords = section ? extractChordsFromSection(section) : [];
+  const chords = section ? extractChordsFromSection(section, transpose) : [];
 
   // Get unique chords in order of first appearance
   const uniqueChords: string[] = [];
@@ -290,11 +297,13 @@ export default function RoomDisplayPage({
           <SongDisplay
             sections={demoSong}
             currentSection={roomState.currentSection}
+            transpose={roomState.transpose}
           />
           {/* Chord diagram panel */}
           <ChordDiagramPanel
             sections={demoSong}
             currentSection={roomState.currentSection}
+            transpose={roomState.transpose}
             visible={showChordPanel}
             onToggle={() => setShowChordPanel(!showChordPanel)}
           />
