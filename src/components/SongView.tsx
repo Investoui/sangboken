@@ -143,11 +143,20 @@ function ChordDiagramPanel({
 function TabDisplay({ song }: { song: Song }) {
   return (
     <div className="h-screen overflow-auto pb-[220px]">
-      <div className="p-8 pt-16 pl-[max(2rem,env(safe-area-inset-left))] pr-[max(2rem,env(safe-area-inset-right))]">
+      <div className="p-8 pt-8 pl-[max(2rem,env(safe-area-inset-left))] pr-[max(2rem,env(safe-area-inset-right))]">
         <div className="pb-4">
-          <h1 className="text-2xl font-display font-bold text-[var(--text-primary)] mb-1">
-            {song.title}
-          </h1>
+          <div className="flex items-center gap-3 mb-1">
+            <Link
+              href="/"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <BackIcon />
+            </Link>
+            <h1 className="text-2xl font-display font-bold text-[var(--text-primary)]">
+              {song.title}
+            </h1>
+          </div>
           {song.artist && (
             <div className="text-[var(--text-secondary)] text-lg">
               {song.artist}
@@ -198,8 +207,8 @@ function SongDisplay({
     : "h-screen overflow-hidden flex flex-col pb-[200px]";
 
   const contentClass = isLandscape
-    ? "h-full flex flex-col p-4 pt-14 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
-    : "flex-1 flex flex-col p-8 pt-16";
+    ? "h-full flex flex-col p-4 pt-4 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
+    : "flex-1 flex flex-col p-8 pt-8";
 
   const baseFontSize = isLandscape
     ? "clamp(0.7rem, 2vw, 1.5rem)"
@@ -218,9 +227,18 @@ function SongDisplay({
     <div className={containerClass}>
       <div className={contentClass} style={{ fontSize }}>
         <div className="pb-2 flex-shrink-0">
-          <h1 className="text-[1.5em] font-display font-bold text-[var(--text-primary)] mb-1">
-            {song.title}
-          </h1>
+          <div className="flex items-center gap-3 mb-1">
+            <Link
+              href="/"
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <BackIcon />
+            </Link>
+            <h1 className="text-[1.5em] font-display font-bold text-[var(--text-primary)]">
+              {song.title}
+            </h1>
+          </div>
           {song.artist && (
             <div className="text-[var(--text-secondary)] text-[0.9em]">
               {song.artist}
@@ -700,20 +718,6 @@ export function SongView({ song }: SongViewProps) {
       className="min-h-screen h-screen bg-[var(--bg-base)] relative cursor-pointer overflow-hidden"
       onClick={handleScreenTap}
     >
-
-      {/* Back button (always visible, top left, respects safe area) */}
-      <Link
-        href="/"
-        className="fixed z-50 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-4 py-2.5 rounded-full text-white/80 hover:text-white hover:bg-black/90 transition-colors border border-white/10"
-        style={{
-          top: "max(0.75rem, env(safe-area-inset-top))",
-          left: "max(0.75rem, env(safe-area-inset-left))",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <BackIcon />
-        <span className="text-sm font-medium">Tilbake</span>
-      </Link>
 
       {/* Main content area */}
       {isLandscape ? (
