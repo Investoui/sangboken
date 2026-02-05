@@ -160,16 +160,78 @@ function SongDisplay({
 function OverlayControls({
   visible,
   onInteraction,
+  currentSong,
+  allSongs,
+  currentSongIndex,
+  onSongChange,
+  transpose,
+  onTransposeChange,
+  showChordPanel,
+  onToggleChordPanel,
 }: {
   visible: boolean;
   onInteraction: () => void;
+  currentSong: Song;
+  allSongs: Song[];
+  currentSongIndex: number;
+  onSongChange: (index: number) => void;
+  transpose: number;
+  onTransposeChange: (value: number) => void;
+  showChordPanel: boolean;
+  onToggleChordPanel: () => void;
 }) {
+  const [showSongPicker, setShowSongPicker] = useState(false);
+
+  const handlePrevSong = () => {
+    onInteraction();
+    if (currentSongIndex > 0) {
+      onSongChange(currentSongIndex - 1);
+    }
+  };
+
+  const handleNextSong = () => {
+    onInteraction();
+    if (currentSongIndex < allSongs.length - 1) {
+      onSongChange(currentSongIndex + 1);
+    }
+  };
+
+  const handleTransposeDown = () => {
+    onInteraction();
+    if (transpose > -6) {
+      onTransposeChange(transpose - 1);
+    }
+  };
+
+  const handleTransposeUp = () => {
+    onInteraction();
+    if (transpose < 6) {
+      onTransposeChange(transpose + 1);
+    }
+  };
+
+  const handleToggleChords = () => {
+    onInteraction();
+    onToggleChordPanel();
+  };
+
+  const handleSongSelect = (index: number) => {
+    onInteraction();
+    onSongChange(index);
+    setShowSongPicker(false);
+  };
+
+  const handleToggleSongPicker = () => {
+    onInteraction();
+    setShowSongPicker(!showSongPicker);
+  };
+
   return (
     <div
       className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 ease-out ${
         visible
           ? "translate-y-0 opacity-100"
-          : "translate-y-full opacity-0"
+          : "translate-y-full opacity-0 pointer-events-none"
       }`}
       onClick={(e) => {
         e.stopPropagation();
@@ -177,13 +239,121 @@ function OverlayControls({
       }}
       onTouchStart={(e) => {
         e.stopPropagation();
-        onInteraction();
       }}
     >
-      <div className="bg-black/80 backdrop-blur-md border-t border-white/10 p-6">
-        <div className="text-center text-white/50 text-sm">
-          Control panel - more controls coming in next update
+      <div className="bg-black/90 backdrop-blur-md border-t border-white/10 p-4">
+        {/* Current song title - displayed prominently */}
+        <div className="text-center mb-4">
+          <h2 className="text-white text-xl font-bold truncate">{currentSong.title}</h2>
+          {currentSong.artist && (
+            <div className="text-white/50 text-sm">{currentSong.artist}</div>
+          )}
         </div>
+
+        {/* Main controls row */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          {/* Previous song button */}
+          <button
+            onClick={handlePrevSong}
+            disabled={currentSongIndex === 0}
+            className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Song picker button */}
+          <button
+            onClick={handleToggleSongPicker}
+            className="min-h-[60px] flex-1 max-w-[200px] flex items-center justify-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-xl text-amber-400 transition-colors px-4"
+          >
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
+            <span className="truncate text-sm font-medium">Songs</span>
+          </button>
+
+          {/* Next song button */}
+          <button
+            onClick={handleNextSong}
+            disabled={currentSongIndex === allSongs.length - 1}
+            className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Secondary controls row: Transpose and Chord toggle */}
+        <div className="flex items-center justify-center gap-4">
+          {/* Transpose controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleTransposeDown}
+              disabled={transpose <= -6}
+              className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white text-xl font-bold transition-colors"
+            >
+              −
+            </button>
+            <div className="min-w-[80px] text-center">
+              <div className="text-white/50 text-xs uppercase tracking-wider">Transpose</div>
+              <div className="text-white text-lg font-bold">
+                {transpose > 0 ? `+${transpose}` : transpose}
+              </div>
+            </div>
+            <button
+              onClick={handleTransposeUp}
+              disabled={transpose >= 6}
+              className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white text-xl font-bold transition-colors"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Toggle chord diagrams */}
+          <button
+            onClick={handleToggleChords}
+            className={`min-h-[60px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+              showChordPanel
+                ? "bg-amber-500/30 text-amber-400"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m6 10V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+            </svg>
+            <span className="text-sm font-medium">Chords</span>
+          </button>
+        </div>
+
+        {/* Song picker dropdown/list */}
+        {showSongPicker && (
+          <div className="mt-4 max-h-[200px] overflow-y-auto bg-black/60 rounded-xl border border-white/10">
+            {allSongs.map((song, index) => (
+              <button
+                key={song.id}
+                onClick={() => handleSongSelect(index)}
+                className={`w-full min-h-[60px] px-4 flex items-center justify-between text-left transition-colors ${
+                  index === currentSongIndex
+                    ? "bg-amber-500/20 text-amber-400"
+                    : "text-white hover:bg-white/10"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{song.title}</div>
+                  {song.artist && (
+                    <div className="text-sm text-white/50 truncate">{song.artist}</div>
+                  )}
+                </div>
+                {song.key && (
+                  <div className="text-xs text-white/40 ml-2">{song.key}</div>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -268,6 +438,17 @@ export default function MirrorPage() {
       <OverlayControls
         visible={showOverlay}
         onInteraction={handleOverlayInteraction}
+        currentSong={currentSong}
+        allSongs={allSongs}
+        currentSongIndex={currentSongIndex}
+        onSongChange={(index) => {
+          setCurrentSongIndex(index);
+          setTranspose(0); // Reset transpose when changing songs
+        }}
+        transpose={transpose}
+        onTransposeChange={setTranspose}
+        showChordPanel={showChordPanel}
+        onToggleChordPanel={() => setShowChordPanel(!showChordPanel)}
       />
     </div>
   );
