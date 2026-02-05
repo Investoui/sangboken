@@ -178,10 +178,12 @@ function SongDisplay({
   song,
   transpose,
   isLandscape,
+  zoom,
 }: {
   song: Song;
   transpose: number;
   isLandscape: boolean;
+  zoom: number;
 }) {
   if (song.format === "tab" && song.rawTab) {
     return <TabDisplay song={song} />;
@@ -199,9 +201,10 @@ function SongDisplay({
     ? "h-full flex flex-col p-4 pt-8 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
     : "flex-1 flex flex-col p-8 pt-16";
 
-  const fontSize = isLandscape
+  const baseFontSize = isLandscape
     ? "clamp(0.7rem, 2vw, 1.5rem)"
     : "clamp(0.5rem, 1.5vw, 2rem)";
+  const fontSize = `calc(${baseFontSize} * ${zoom})`;
 
   const sectionsLayoutClass =
     isLandscape && !isLongSong
@@ -319,6 +322,24 @@ function MoonIcon() {
   );
 }
 
+function ZoomIcon() {
+  return (
+    <svg
+      className="w-4 h-4"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
+    </svg>
+  );
+}
+
 // Overlay Controls component
 function OverlayControls({
   visible,
@@ -326,6 +347,8 @@ function OverlayControls({
   song,
   transpose,
   onTransposeChange,
+  zoom,
+  onZoomChange,
   showChordPanel,
   onToggleChordPanel,
   wakeLockEnabled,
@@ -337,6 +360,8 @@ function OverlayControls({
   song: Song;
   transpose: number;
   onTransposeChange: (value: number) => void;
+  zoom: number;
+  onZoomChange: (value: number) => void;
   showChordPanel: boolean;
   onToggleChordPanel: () => void;
   wakeLockEnabled: boolean;
@@ -354,6 +379,20 @@ function OverlayControls({
     onInteraction();
     if (transpose < 6) {
       onTransposeChange(transpose + 1);
+    }
+  };
+
+  const handleZoomDown = () => {
+    onInteraction();
+    if (zoom > ZOOM_MIN) {
+      onZoomChange(Math.round((zoom - ZOOM_STEP) * 10) / 10);
+    }
+  };
+
+  const handleZoomUp = () => {
+    onInteraction();
+    if (zoom < ZOOM_MAX) {
+      onZoomChange(Math.round((zoom + ZOOM_STEP) * 10) / 10);
     }
   };
 
@@ -406,61 +445,94 @@ function OverlayControls({
           <div className="w-[100px]" /> {/* Spacer for balance */}
         </div>
 
-        {/* Controls row */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {/* Transpose controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleTransposeDown}
-              disabled={transpose <= -6}
-              className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <span className="text-xl font-bold">−</span>
-            </button>
-            <div className="min-w-[70px] text-center">
-              <div className="section-label text-[10px]">Transponer</div>
-              <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
-                {transpose > 0 ? `+${transpose}` : transpose}
+        {/* Controls */}
+        <div className="flex flex-col gap-3">
+          {/* Transpose & Zoom row */}
+          <div className="flex items-center justify-center gap-4">
+            {/* Transpose controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleTransposeDown}
+                disabled={transpose <= -6}
+                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="text-xl font-bold">−</span>
+              </button>
+              <div className="min-w-[70px] text-center">
+                <div className="section-label text-[10px]">Transponer</div>
+                <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
+                  {transpose > 0 ? `+${transpose}` : transpose}
+                </div>
               </div>
+              <button
+                onClick={handleTransposeUp}
+                disabled={transpose >= 6}
+                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="text-xl font-bold">+</span>
+              </button>
             </div>
-            <button
-              onClick={handleTransposeUp}
-              disabled={transpose >= 6}
-              className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <span className="text-xl font-bold">+</span>
-            </button>
+
+            {/* Zoom controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleZoomDown}
+                disabled={zoom <= ZOOM_MIN}
+                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="text-xl font-bold">−</span>
+              </button>
+              <div className="min-w-[60px] text-center">
+                <div className="section-label text-[10px] flex items-center justify-center gap-1">
+                  <ZoomIcon />
+                  <span>Zoom</span>
+                </div>
+                <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
+                  {Math.round(zoom * 100)}%
+                </div>
+              </div>
+              <button
+                onClick={handleZoomUp}
+                disabled={zoom >= ZOOM_MAX}
+                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="text-xl font-bold">+</span>
+              </button>
+            </div>
           </div>
 
-          {/* Toggle chord diagrams */}
-          {song.format !== "tab" && (
+          {/* Toggle buttons row */}
+          <div className="flex items-center justify-center gap-3">
+            {/* Toggle chord diagrams */}
+            {song.format !== "tab" && (
+              <button
+                onClick={handleToggleChords}
+                className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 transition-all ${
+                  showChordPanel
+                    ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
+                    : "btn-secondary"
+                }`}
+              >
+                <ChordIcon />
+                <span className="text-sm font-medium">Akkorder</span>
+              </button>
+            )}
+
+            {/* Keep screen on toggle */}
             <button
-              onClick={handleToggleChords}
+              onClick={handleToggleWakeLock}
               className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 transition-all ${
-                showChordPanel
-                  ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
+                wakeLockEnabled
+                  ? wakeLockActive
+                    ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
+                    : "bg-[rgba(251,191,36,0.15)] text-[var(--warning)]"
                   : "btn-secondary"
               }`}
             >
-              <ChordIcon />
-              <span className="text-sm font-medium">Akkorder</span>
+              {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
+              <span className="text-sm font-medium">Hold skjerm på</span>
             </button>
-          )}
-
-          {/* Keep screen on toggle */}
-          <button
-            onClick={handleToggleWakeLock}
-            className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 whitespace-nowrap transition-all ${
-              wakeLockEnabled
-                ? wakeLockActive
-                  ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
-                  : "bg-[rgba(251,191,36,0.15)] text-[var(--warning)]"
-                : "btn-secondary"
-            }`}
-          >
-            {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
-            <span className="text-sm font-medium">Behold skjermen på</span>
-          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -471,8 +543,14 @@ interface SongViewProps {
   song: Song;
 }
 
+// Zoom constants
+const ZOOM_MIN = 0.6;
+const ZOOM_MAX = 1.6;
+const ZOOM_STEP = 0.1;
+
 export function SongView({ song }: SongViewProps) {
   const [transpose, setTranspose] = useState(0);
+  const [zoom, setZoom] = useState(1.0);
   const [showChordPanel, setShowChordPanel] = useState(true);
   const [showOverlay, setShowOverlay] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
@@ -610,27 +688,6 @@ export function SongView({ song }: SongViewProps) {
       className="min-h-screen h-screen bg-[var(--bg-base)] relative cursor-pointer overflow-hidden"
       onClick={handleScreenTap}
     >
-      {/* Wake lock indicator */}
-      {wakeLockEnabled && (
-        <div
-          className="fixed z-40 flex items-center gap-1.5 glass px-3 py-1.5 rounded-full animate-fade-down"
-          style={{
-            top: "max(0.5rem, env(safe-area-inset-top))",
-            right: "max(0.5rem, env(safe-area-inset-right))",
-          }}
-        >
-          <div
-            className={`w-2 h-2 rounded-full ${
-              wakeLockActive
-                ? "bg-[var(--success)]"
-                : "bg-[var(--warning)] animate-pulse"
-            }`}
-          />
-          <span className="text-xs text-[var(--text-secondary)]">
-            {wakeLockActive ? "Skjerm på" : "Kobler til..."}
-          </span>
-        </div>
-      )}
 
       {/* Back button (always visible, top left, respects safe area) */}
       <Link
@@ -650,7 +707,7 @@ export function SongView({ song }: SongViewProps) {
       {isLandscape ? (
         <div className="h-full flex">
           <div className="flex-1 h-full overflow-hidden">
-            <SongDisplay song={song} transpose={transpose} isLandscape={true} />
+            <SongDisplay song={song} transpose={transpose} isLandscape={true} zoom={zoom} />
           </div>
 
           {song.format !== "tab" && showChordPanel && (
@@ -680,7 +737,7 @@ export function SongView({ song }: SongViewProps) {
         </div>
       ) : (
         <>
-          <SongDisplay song={song} transpose={transpose} isLandscape={false} />
+          <SongDisplay song={song} transpose={transpose} isLandscape={false} zoom={zoom} />
 
           {song.format !== "tab" && (
             <ChordDiagramPanel
@@ -701,6 +758,8 @@ export function SongView({ song }: SongViewProps) {
         song={song}
         transpose={transpose}
         onTransposeChange={setTranspose}
+        zoom={zoom}
+        onZoomChange={setZoom}
         showChordPanel={showChordPanel}
         onToggleChordPanel={() => setShowChordPanel(!showChordPanel)}
         wakeLockEnabled={wakeLockEnabled}
