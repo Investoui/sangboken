@@ -507,7 +507,7 @@ function OverlayControls({
             {song.format !== "tab" && (
               <button
                 onClick={handleToggleChords}
-                className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 transition-all ${
+                className={`btn flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all ${
                   showChordPanel
                     ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
                     : "btn-secondary"
@@ -521,7 +521,7 @@ function OverlayControls({
             {/* Keep screen on toggle */}
             <button
               onClick={handleToggleWakeLock}
-              className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 transition-all ${
+              className={`btn flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all ${
                 wakeLockEnabled
                   ? wakeLockActive
                     ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
@@ -547,6 +547,7 @@ interface SongViewProps {
 const ZOOM_MIN = 0.6;
 const ZOOM_MAX = 1.6;
 const ZOOM_STEP = 0.1;
+const ZOOM_STORAGE_KEY = "sangboken-zoom";
 
 export function SongView({ song }: SongViewProps) {
   const [transpose, setTranspose] = useState(0);
@@ -559,6 +560,23 @@ export function SongView({ song }: SongViewProps) {
   const [wakeLockEnabled, setWakeLockEnabled] = useState(true);
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  // Load zoom from localStorage on mount
+  useEffect(() => {
+    const savedZoom = localStorage.getItem(ZOOM_STORAGE_KEY);
+    if (savedZoom) {
+      const parsed = parseFloat(savedZoom);
+      if (!isNaN(parsed) && parsed >= ZOOM_MIN && parsed <= ZOOM_MAX) {
+        setZoom(parsed);
+      }
+    }
+  }, []);
+
+  // Save zoom to localStorage when it changes
+  const handleZoomChange = useCallback((newZoom: number) => {
+    setZoom(newZoom);
+    localStorage.setItem(ZOOM_STORAGE_KEY, newZoom.toString());
+  }, []);
 
   // Detect landscape orientation
   useEffect(() => {
