@@ -1,4 +1,4 @@
-# Guitar Chords - Cast & Control
+# Sangboken - Din digitale sangbok
 
 A web app for displaying guitar chords on a TV with phone-based remote control.
 
