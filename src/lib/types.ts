@@ -41,6 +41,7 @@ export interface Song {
   title: string;
   artist?: string;
   key?: string;
+  category?: string;
   format?: "chordpro" | "tab";
   sections: SongSection[];
   rawTab?: string; // For tab format - raw tablature content

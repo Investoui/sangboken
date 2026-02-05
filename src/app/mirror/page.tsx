@@ -5,6 +5,7 @@ import { SongSection, SongLine, Song } from "@/lib/types";
 import { ChordDiagram } from "@/components/ChordDiagram";
 import { transposeChord } from "@/lib/transpose";
 import { getAllSongs } from "@/lib/songs";
+import { Logo } from "@/components/Logo";
 
 interface ChordLineProps {
   line: SongLine;
@@ -25,7 +26,7 @@ function ChordLine({ line, transpose }: ChordLineProps) {
         {chordPositions.map((c, idx) => (
           <span
             key={idx}
-            className="absolute text-amber-400 font-bold"
+            className="absolute chord font-bold"
             style={{
               left: `${c.position}ch`,
             }}
@@ -35,7 +36,7 @@ function ChordLine({ line, transpose }: ChordLineProps) {
         ))}
       </div>
       {/* Lyrics row */}
-      <div className="font-mono text-[1em] text-white whitespace-pre">
+      <div className="font-mono text-[1em] text-[var(--text-primary)] whitespace-pre">
         {line.lyrics}
       </div>
     </div>
@@ -43,7 +44,10 @@ function ChordLine({ line, transpose }: ChordLineProps) {
 }
 
 // Extract unique chords from ALL sections in order of first appearance
-function extractAllUniqueChords(sections: SongSection[], transpose: number = 0): string[] {
+function extractAllUniqueChords(
+  sections: SongSection[],
+  transpose: number = 0
+): string[] {
   const uniqueChords: string[] = [];
   for (const section of sections) {
     for (const line of section.lines) {
@@ -80,16 +84,18 @@ function ChordDiagramPanel({
   if (isLandscape) {
     return (
       <div
-        className="h-full w-full bg-black/40 backdrop-blur-sm border-l border-white/10 flex flex-col cursor-pointer"
+        className="h-full w-full glass flex flex-col cursor-pointer"
         onClick={(e) => {
           e.stopPropagation();
           onHide();
         }}
         title="Tap to hide"
       >
-        <div className="text-white/40 text-xs uppercase tracking-wider px-3 py-2 border-b border-white/10 flex justify-between items-center">
-          <span>Chords</span>
-          <span className="text-white/20">tap to hide</span>
+        <div className="section-label px-3 py-2 border-b border-[var(--border-subtle)] flex justify-between items-center">
+          <span>Akkorder</span>
+          <span className="text-[var(--text-muted)] text-[10px] normal-case tracking-normal">
+            tap to hide
+          </span>
         </div>
         {uniqueChords.length > 0 ? (
           <div className="flex-1 overflow-y-auto p-2">
@@ -102,8 +108,8 @@ function ChordDiagramPanel({
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-white/30 text-sm">
-            No chords
+          <div className="flex-1 flex items-center justify-center text-[var(--text-muted)] text-sm">
+            Ingen akkorder
           </div>
         )}
       </div>
@@ -116,9 +122,9 @@ function ChordDiagramPanel({
       className="fixed bottom-0 left-0 right-0 z-10"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[180px] flex items-center px-4">
+      <div className="glass h-[180px] flex items-center px-4 border-t border-[var(--border-subtle)]">
         {uniqueChords.length > 0 ? (
-          <div className="flex gap-6 overflow-x-auto w-full py-4 px-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+          <div className="flex gap-6 overflow-x-auto w-full py-4 px-2">
             {uniqueChords.map((chord, idx) => (
               <div key={idx} className="flex-shrink-0">
                 <ChordDiagram chordName={chord} size="md" />
@@ -126,7 +132,9 @@ function ChordDiagramPanel({
             ))}
           </div>
         ) : (
-          <div className="text-white/30 w-full text-center">No chords to display</div>
+          <div className="text-[var(--text-muted)] w-full text-center">
+            Ingen akkorder å vise
+          </div>
         )}
       </div>
     </div>
@@ -140,17 +148,23 @@ function TabDisplay({ song }: { song: Song }) {
       <div className="p-8 pt-16">
         {/* Song title */}
         <div className="pb-4">
-          <h1 className="text-2xl font-bold text-white mb-1">{song.title}</h1>
+          <h1 className="text-2xl font-display font-bold text-[var(--text-primary)] mb-1">
+            {song.title}
+          </h1>
           {song.artist && (
-            <div className="text-white/50 text-lg">{song.artist}</div>
+            <div className="text-[var(--text-secondary)] text-lg">
+              {song.artist}
+            </div>
           )}
           {song.key && (
-            <div className="text-amber-400/60 text-sm mt-1">Key: {song.key}</div>
+            <div className="text-[var(--accent-secondary)] text-sm mt-1 opacity-70">
+              Toneart: {song.key}
+            </div>
           )}
         </div>
 
         {/* Tab content - monospace pre-formatted */}
-        <pre className="font-mono text-sm md:text-base lg:text-lg text-white/90 whitespace-pre overflow-x-auto leading-relaxed">
+        <pre className="font-mono text-sm md:text-base lg:text-lg text-[var(--text-secondary)] whitespace-pre overflow-x-auto leading-relaxed">
           {song.rawTab}
         </pre>
       </div>
@@ -161,7 +175,7 @@ function TabDisplay({ song }: { song: Song }) {
 // Helper to find max lines in any single verse
 function maxLinesPerVerse(sections: SongSection[]): number {
   if (sections.length === 0) return 0;
-  return Math.max(...sections.map(section => section.lines.length));
+  return Math.max(...sections.map((section) => section.lines.length));
 }
 
 // Song Display component
@@ -180,7 +194,7 @@ function SongDisplay({
   }
 
   const sections = song.sections;
-  
+
   // Determine if verses are "long" - more than 5 lines per verse means vertical scroll
   const maxLines = maxLinesPerVerse(sections);
   const isLongSong = maxLines > 5;
@@ -197,31 +211,36 @@ function SongDisplay({
 
   // Larger text in landscape since we have more room
   const fontSize = isLandscape
-    ? 'clamp(0.7rem, 2vw, 1.5rem)'
-    : 'clamp(0.5rem, 1.5vw, 2rem)';
+    ? "clamp(0.7rem, 2vw, 1.5rem)"
+    : "clamp(0.5rem, 1.5vw, 2rem)";
 
   // For short songs in landscape: use horizontal columns layout
   // For long songs: use vertical scrolling
-  const sectionsLayoutClass = isLandscape && !isLongSong
-    ? "flex-1 overflow-auto columns-2 gap-8"
-    : "flex-1 overflow-auto flex flex-col justify-start gap-4";
+  const sectionsLayoutClass =
+    isLandscape && !isLongSong
+      ? "flex-1 overflow-auto columns-2 gap-8"
+      : "flex-1 overflow-auto flex flex-col justify-start gap-4";
 
-  const sectionItemClass = isLandscape && !isLongSong
-    ? "break-inside-avoid mb-4"
-    : "";
+  const sectionItemClass =
+    isLandscape && !isLongSong ? "break-inside-avoid mb-4" : "";
 
   return (
     <div className={containerClass}>
       <div className={contentClass} style={{ fontSize }}>
         {/* Song title */}
         <div className="pb-2 flex-shrink-0">
-          <h1 className="text-[1.5em] font-bold text-white mb-1">{song.title}</h1>
+          <h1 className="text-[1.5em] font-display font-bold text-[var(--text-primary)] mb-1">
+            {song.title}
+          </h1>
           {song.artist && (
-            <div className="text-white/50 text-[0.9em]">{song.artist}</div>
+            <div className="text-[var(--text-secondary)] text-[0.9em]">
+              {song.artist}
+            </div>
           )}
           {song.key && transpose !== 0 && (
-            <div className="text-amber-400/60 text-[0.7em] mt-1">
-              Transposed {transpose > 0 ? "+" : ""}{transpose} semitones
+            <div className="text-[var(--accent-secondary)] text-[0.7em] mt-1 opacity-70">
+              Transponert {transpose > 0 ? "+" : ""}
+              {transpose} halvtoner
             </div>
           )}
         </div>
@@ -230,9 +249,7 @@ function SongDisplay({
         <div className={sectionsLayoutClass}>
           {sections.map((section, sectionIdx) => (
             <div key={sectionIdx} className={sectionItemClass}>
-              <div className="text-amber-500/60 text-[0.7em] uppercase tracking-wider mb-2">
-                {section.name}
-              </div>
+              <div className="section-label mb-2">{section.name}</div>
               {section.lines.map((line, lineIdx) => (
                 <ChordLine key={lineIdx} line={line} transpose={transpose} />
               ))}
@@ -241,6 +258,115 @@ function SongDisplay({
         </div>
       </div>
     </div>
+  );
+}
+
+// Icon components
+function PrevIcon() {
+  return (
+    <svg
+      className="w-6 h-6"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15 19l-7-7 7-7"
+      />
+    </svg>
+  );
+}
+
+function NextIcon() {
+  return (
+    <svg
+      className="w-6 h-6"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 5l7 7-7 7"
+      />
+    </svg>
+  );
+}
+
+function MusicIcon() {
+  return (
+    <svg
+      className="w-5 h-5 flex-shrink-0"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+      />
+    </svg>
+  );
+}
+
+function ChordIcon() {
+  return (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m6 10V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"
+      />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+      />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+      />
+    </svg>
   );
 }
 
@@ -340,12 +466,16 @@ function OverlayControls({
         e.stopPropagation();
       }}
     >
-      <div className="bg-black/90 backdrop-blur-md border-t border-white/10 p-4">
+      <div className="glass p-4 border-t border-[var(--border-subtle)] safe-area-inset">
         {/* Current song title - displayed prominently */}
         <div className="text-center mb-4">
-          <h2 className="text-white text-xl font-bold truncate">{currentSong.title}</h2>
+          <h2 className="text-[var(--text-primary)] text-xl font-display font-bold truncate">
+            {currentSong.title}
+          </h2>
           {currentSong.artist && (
-            <div className="text-white/50 text-sm">{currentSong.artist}</div>
+            <div className="text-[var(--text-tertiary)] text-sm">
+              {currentSong.artist}
+            </div>
           )}
         </div>
 
@@ -355,59 +485,58 @@ function OverlayControls({
           <button
             onClick={handlePrevSong}
             disabled={currentSongIndex === 0}
-            className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white transition-colors"
+            className="btn btn-secondary btn-icon-lg disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <PrevIcon />
           </button>
 
           {/* Song picker button */}
           <button
             onClick={handleToggleSongPicker}
-            className="min-h-[60px] flex-1 max-w-[200px] flex items-center justify-center gap-2 bg-amber-500/20 hover:bg-amber-500/30 rounded-xl text-amber-400 transition-colors px-4"
+            className={`btn flex-1 max-w-[200px] flex items-center justify-center gap-2 transition-all ${
+              showSongPicker
+                ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
+                : "bg-[var(--accent-muted)] text-[var(--accent-primary)] hover:bg-[var(--accent-glow)]"
+            }`}
+            style={{ minHeight: "56px" }}
           >
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-            </svg>
-            <span className="truncate text-sm font-medium">Songs</span>
+            <MusicIcon />
+            <span className="truncate text-sm font-medium">Sanger</span>
           </button>
 
           {/* Next song button */}
           <button
             onClick={handleNextSong}
             disabled={currentSongIndex === allSongs.length - 1}
-            className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white transition-colors"
+            className="btn btn-secondary btn-icon-lg disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <NextIcon />
           </button>
         </div>
 
         {/* Secondary controls row: Transpose and Chord toggle */}
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           {/* Transpose controls */}
           <div className="flex items-center gap-2">
             <button
               onClick={handleTransposeDown}
               disabled={transpose <= -6}
-              className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white text-xl font-bold transition-colors"
+              className="btn btn-secondary btn-icon-lg disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              −
+              <span className="text-xl font-bold">−</span>
             </button>
             <div className="min-w-[80px] text-center">
-              <div className="text-white/50 text-xs uppercase tracking-wider">Transpose</div>
-              <div className="text-white text-lg font-bold">
+              <div className="section-label text-[10px]">Transponer</div>
+              <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
                 {transpose > 0 ? `+${transpose}` : transpose}
               </div>
             </div>
             <button
               onClick={handleTransposeUp}
               disabled={transpose >= 6}
-              className="min-h-[60px] min-w-[60px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white text-xl font-bold transition-colors"
+              className="btn btn-secondary btn-icon-lg disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              +
+              <span className="text-xl font-bold">+</span>
             </button>
           </div>
 
@@ -415,67 +544,65 @@ function OverlayControls({
           {currentSong.format !== "tab" && (
             <button
               onClick={handleToggleChords}
-              className={`min-h-[60px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+              className={`btn flex items-center justify-center gap-2 px-4 transition-all ${
                 showChordPanel
-                  ? "bg-amber-500/30 text-amber-400"
-                  : "bg-white/10 text-white/70 hover:bg-white/20"
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
+                  : "btn-secondary"
               }`}
+              style={{ minHeight: "56px" }}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m6 10V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
-              </svg>
-              <span className="text-sm font-medium">Chords</span>
+              <ChordIcon />
+              <span className="text-sm font-medium">Akkorder</span>
             </button>
           )}
 
           {/* Keep screen on toggle */}
           <button
             onClick={handleToggleWakeLock}
-            className={`min-h-[60px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+            className={`btn flex items-center justify-center gap-2 px-4 transition-all ${
               wakeLockEnabled
                 ? wakeLockActive
-                  ? "bg-green-500/30 text-green-400"
-                  : "bg-yellow-500/30 text-yellow-400"
-                : "bg-white/10 text-white/70 hover:bg-white/20"
+                  ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
+                  : "bg-[rgba(251,191,36,0.15)] text-[var(--warning)]"
+                : "btn-secondary"
             }`}
+            style={{ minHeight: "56px" }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {wakeLockEnabled ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              )}
-            </svg>
-            <span className="text-sm font-medium">Screen</span>
+            {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
+            <span className="text-sm font-medium">Skjerm</span>
           </button>
         </div>
 
         {/* Song picker dropdown/list */}
         {showSongPicker && (
-          <div className="mt-4 max-h-[200px] overflow-y-auto bg-black/60 rounded-xl border border-white/10">
+          <div className="mt-4 max-h-[200px] overflow-y-auto bg-[var(--bg-surface)] rounded-xl border border-[var(--border-default)]">
             {allSongs.map((song, index) => (
               <button
                 key={song.id}
                 onClick={() => handleSongSelect(index)}
-                className={`w-full min-h-[60px] px-4 flex items-center justify-between text-left transition-colors ${
+                className={`w-full min-h-[56px] px-4 flex items-center justify-between text-left transition-colors ${
                   index === currentSongIndex
-                    ? "bg-amber-500/20 text-amber-400"
-                    : "text-white hover:bg-white/10"
+                    ? "bg-[var(--accent-muted)] text-[var(--accent-primary)]"
+                    : "text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate flex items-center gap-2">
+                  <div className="font-display font-medium truncate flex items-center gap-2">
                     {song.title}
                     {song.format === "tab" && (
-                      <span className="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded">TAB</span>
+                      <span className="badge badge-tab text-xs">TAB</span>
                     )}
                   </div>
                   {song.artist && (
-                    <div className="text-sm text-white/50 truncate">{song.artist}</div>
+                    <div className="text-sm text-[var(--text-tertiary)] truncate">
+                      {song.artist}
+                    </div>
                   )}
                 </div>
                 {song.key && (
-                  <div className="text-xs text-white/40 ml-2">{song.key}</div>
+                  <div className="text-xs text-[var(--text-muted)] ml-2 font-mono">
+                    {song.key}
+                  </div>
                 )}
               </button>
             ))}
@@ -507,17 +634,17 @@ export default function MirrorPage() {
     };
 
     checkOrientation();
-    window.addEventListener('resize', checkOrientation);
+    window.addEventListener("resize", checkOrientation);
 
     // Also listen for orientation change on mobile
-    window.addEventListener('orientationchange', () => {
+    window.addEventListener("orientationchange", () => {
       // Small delay to let the browser update dimensions
       setTimeout(checkOrientation, 100);
     });
 
     return () => {
-      window.removeEventListener('resize', checkOrientation);
-      window.removeEventListener('orientationchange', checkOrientation);
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
     };
   }, []);
 
@@ -629,27 +756,32 @@ export default function MirrorPage() {
   // If no songs available, show message
   if (!currentSong) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-white/50 text-xl">No songs available</div>
+      <div className="min-h-screen bg-[var(--bg-base)] flex flex-col items-center justify-center gap-4">
+        <Logo size="lg" />
+        <div className="text-[var(--text-tertiary)] text-xl">
+          Ingen sanger tilgjengelig
+        </div>
       </div>
     );
   }
 
   return (
     <div
-      className="min-h-screen h-screen bg-black relative cursor-pointer overflow-hidden"
+      className="min-h-screen h-screen bg-[var(--bg-base)] relative cursor-pointer overflow-hidden"
       onClick={handleScreenTap}
     >
       {/* Wake lock indicator */}
       {wakeLockEnabled && (
-        <div className="fixed top-2 right-2 z-40 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+        <div className="fixed top-2 right-2 z-40 flex items-center gap-1.5 glass px-3 py-1.5 rounded-full animate-fade-down">
           <div
             className={`w-2 h-2 rounded-full ${
-              wakeLockActive ? "bg-green-400" : "bg-yellow-400 animate-pulse"
+              wakeLockActive
+                ? "bg-[var(--success)]"
+                : "bg-[var(--warning)] animate-pulse"
             }`}
           />
-          <span className="text-xs text-white/70">
-            {wakeLockActive ? "Screen on" : "Reconnecting..."}
+          <span className="text-xs text-[var(--text-secondary)]">
+            {wakeLockActive ? "Skjerm på" : "Kobler til..."}
           </span>
         </div>
       )}
@@ -659,7 +791,11 @@ export default function MirrorPage() {
         <div className="h-full flex">
           {/* Song display - takes most of the width */}
           <div className="flex-1 h-full overflow-hidden">
-            <SongDisplay song={currentSong} transpose={transpose} isLandscape={true} />
+            <SongDisplay
+              song={currentSong}
+              transpose={transpose}
+              isLandscape={true}
+            />
           </div>
 
           {/* Chord diagram panel on the right - only for ChordPro format */}
@@ -682,17 +818,21 @@ export default function MirrorPage() {
                 e.stopPropagation();
                 setShowChordPanel(true);
               }}
-              className="fixed right-0 top-1/2 -translate-y-1/2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 px-2 py-4 rounded-l-lg border border-r-0 border-amber-500/30 transition-colors"
-              style={{ writingMode: 'vertical-rl' }}
+              className="fixed right-0 top-1/2 -translate-y-1/2 bg-[var(--accent-muted)] hover:bg-[var(--accent-glow)] text-[var(--accent-primary)] px-2 py-4 rounded-l-lg border border-r-0 border-[var(--accent-primary)]/30 transition-colors"
+              style={{ writingMode: "vertical-rl" }}
             >
-              Show Chords
+              Vis akkorder
             </button>
           )}
         </div>
       ) : (
         <>
           {/* Portrait: stacked layout */}
-          <SongDisplay song={currentSong} transpose={transpose} isLandscape={false} />
+          <SongDisplay
+            song={currentSong}
+            transpose={transpose}
+            isLandscape={false}
+          />
 
           {/* Chord diagram panel at bottom - only for ChordPro format */}
           {currentSong.format !== "tab" && (

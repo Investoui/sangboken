@@ -89,6 +89,7 @@ function parseTabFile(content: string, id: string): Song {
   let title = "Untitled";
   let artist: string | undefined;
   let key: string | undefined;
+  let category: string | undefined;
   const metadataLines: number[] = [];
 
   lines.forEach((line, index) => {
@@ -111,6 +112,9 @@ function parseTabFile(content: string, id: string): Song {
         case "k":
           key = value;
           break;
+        case "category":
+          category = value;
+          break;
       }
     }
   });
@@ -125,6 +129,7 @@ function parseTabFile(content: string, id: string): Song {
     title,
     artist,
     key,
+    category,
     format: "tab",
     sections: [{ name: "Full Song", lines: [] }],
     rawTab,

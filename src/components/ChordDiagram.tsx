@@ -13,6 +13,18 @@ const sizeConfig = {
   lg: { width: 120, height: 150, dotRadius: 12, fontSize: 14, titleSize: 18 },
 };
 
+// Design system colors (hardcoded for SVG compatibility)
+const colors = {
+  accentPrimary: "#f5a623",
+  accentSecondary: "#e8930c",
+  textPrimary: "#fafaf9",
+  textSecondary: "rgba(250, 250, 249, 0.7)",
+  textMuted: "rgba(250, 250, 249, 0.25)",
+  borderStrong: "rgba(255, 255, 255, 0.15)",
+  borderDefault: "rgba(255, 255, 255, 0.1)",
+  bgDeep: "#0a0a0b",
+};
+
 export function ChordDiagram({ chordName, size = "md" }: ChordDiagramProps) {
   const chord = getChord(chordName);
   const config = sizeConfig[size];
@@ -20,19 +32,24 @@ export function ChordDiagram({ chordName, size = "md" }: ChordDiagramProps) {
   if (!chord) {
     return (
       <div
-        className="flex flex-col items-center justify-center text-gray-500"
+        className="flex flex-col items-center justify-center text-[var(--text-muted)]"
         style={{ width: config.width, height: config.height + 20 }}
       >
-        <span style={{ fontSize: config.titleSize }}>{chordName}</span>
-        <span style={{ fontSize: config.fontSize }}>Unknown</span>
+        <span
+          className="chord font-bold"
+          style={{ fontSize: config.titleSize }}
+        >
+          {chordName}
+        </span>
+        <span style={{ fontSize: config.fontSize }}>Ukjent</span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center group">
       <span
-        className="text-white font-bold mb-1"
+        className="chord font-bold mb-1 transition-all group-hover:scale-110"
         style={{ fontSize: config.titleSize }}
       >
         {chord.name}
@@ -51,6 +68,9 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
   const { width, height, dotRadius, fontSize } = config;
   const numStrings = 6;
   const numFrets = 4;
+
+  // Unique ID for this chord's gradients (to avoid conflicts when multiple chords render)
+  const gradientId = `dot-${chord.name.replace(/[^a-zA-Z0-9]/g, "")}`;
 
   // Layout calculations
   const padding = { top: 20, bottom: 10, left: 15, right: 10 };
@@ -75,6 +95,30 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
 
   return (
     <svg width={width} height={height} className="overflow-visible">
+      <defs>
+        {/* Gradient for dots - amber/gold */}
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={colors.accentPrimary} />
+          <stop offset="100%" stopColor={colors.accentSecondary} />
+        </linearGradient>
+        {/* Shadow filter */}
+        <filter
+          id={`${gradientId}-shadow`}
+          x="-50%"
+          y="-50%"
+          width="200%"
+          height="200%"
+        >
+          <feDropShadow
+            dx="0"
+            dy="1"
+            stdDeviation="1"
+            floodColor={colors.accentPrimary}
+            floodOpacity="0.3"
+          />
+        </filter>
+      </defs>
+
       {/* Nut (thick line at top) or fret position indicator */}
       {chord.baseFret === 1 ? (
         <rect
@@ -82,15 +126,17 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
           y={padding.top - 3}
           width={fretboardWidth + 4}
           height={4}
-          fill="white"
+          fill={colors.textPrimary}
+          rx={2}
         />
       ) : (
         <text
           x={padding.left - 12}
           y={getFretY(0) + fretSpacing / 2 + 4}
-          fill="white"
+          fill={colors.textSecondary}
           fontSize={fontSize}
           textAnchor="middle"
+          fontFamily="'JetBrains Mono', monospace"
         >
           {chord.baseFret}
         </text>
@@ -104,12 +150,12 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
           y1={getFretY(i)}
           x2={padding.left + fretboardWidth}
           y2={getFretY(i)}
-          stroke="gray"
+          stroke={colors.borderStrong}
           strokeWidth={i === 0 && chord.baseFret !== 1 ? 2 : 1}
         />
       ))}
 
-      {/* Strings (vertical lines) */}
+      {/* Strings (vertical lines) - gradient from thicker to thinner */}
       {Array.from({ length: numStrings }).map((_, i) => (
         <line
           key={`string-${i}`}
@@ -117,8 +163,8 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
           y1={padding.top}
           x2={getStringX(i)}
           y2={padding.top + fretboardHeight}
-          stroke="gray"
-          strokeWidth={1}
+          stroke={colors.borderDefault}
+          strokeWidth={1.5 - i * 0.15}
         />
       ))}
 
@@ -134,7 +180,8 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
           }
           height={dotRadius}
           rx={dotRadius / 2}
-          fill="white"
+          fill={`url(#${gradientId})`}
+          filter={`url(#${gradientId}-shadow)`}
         />
       )}
 
@@ -150,7 +197,7 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
               key={`mute-${stringIndex}`}
               x={x}
               y={padding.top - 8}
-              fill="white"
+              fill={colors.textMuted}
               fontSize={fontSize + 2}
               textAnchor="middle"
               dominantBaseline="middle"
@@ -169,7 +216,7 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
               cy={padding.top - 8}
               r={dotRadius / 2}
               fill="none"
-              stroke="white"
+              stroke={colors.textSecondary}
               strokeWidth={1.5}
             />
           );
@@ -191,16 +238,23 @@ function ChordSVG({ chord, config }: ChordSVGProps) {
 
         return (
           <g key={`finger-${stringIndex}`}>
-            <circle cx={x} cy={y} r={dotRadius} fill="white" />
+            <circle
+              cx={x}
+              cy={y}
+              r={dotRadius}
+              fill={`url(#${gradientId})`}
+              filter={`url(#${gradientId}-shadow)`}
+            />
             {finger > 0 && (
               <text
                 x={x}
                 y={y}
-                fill="black"
+                fill={colors.bgDeep}
                 fontSize={fontSize}
                 textAnchor="middle"
                 dominantBaseline="central"
                 fontWeight="bold"
+                fontFamily="'JetBrains Mono', monospace"
               >
                 {finger}
               </text>

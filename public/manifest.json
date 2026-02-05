@@ -1,0 +1,49 @@
+{
+  "name": "Sangboken",
+  "short_name": "Sangboken",
+  "description": "Digital sangbok med gitarakkorder for norske barnesanger. Vis på TV, spill fra mobilen.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111113",
+  "theme_color": "#f5a623",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["music", "entertainment", "education"],
+  "lang": "no",
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Alle sanger",
+      "short_name": "Sanger",
+      "description": "Se hele sangbiblioteket",
+      "url": "/",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "TV-modus",
+      "short_name": "TV",
+      "description": "Åpne i fullskjermmodus for TV",
+      "url": "/mirror",
+      "icons": [{ "src": "/icon.svg", "sizes": "any" }]
+    }
+  ]
+}

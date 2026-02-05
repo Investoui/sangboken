@@ -16,6 +16,7 @@ interface ParsedSong {
   title: string;
   artist?: string;
   key?: string;
+  category?: string;
   sections: SongSection[];
 }
 
@@ -122,6 +123,9 @@ export function parseChordPro(text: string, id: string): Song {
         case "key":
           result.key = directive.value;
           break;
+        case "category":
+          result.category = directive.value;
+          break;
         case "verse":
         case "chorus":
         case "bridge":
@@ -161,6 +165,7 @@ export function parseChordPro(text: string, id: string): Song {
     title: result.title,
     artist: result.artist,
     key: result.key,
+    category: result.category,
     sections: result.sections,
   };
 }
