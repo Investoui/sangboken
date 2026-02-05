@@ -45,45 +45,35 @@ function ChordLine({ line, transpose }: ChordLineProps) {
   );
 }
 
-// Extract all chords from a section in order, with optional transposition
-function extractChordsFromSection(section: SongSection, transpose: number = 0): string[] {
-  const chords: string[] = [];
-  for (const line of section.lines) {
-    for (const chordPos of line.chords) {
-      chords.push(transposeChord(chordPos.chord, transpose));
+// Extract unique chords from ALL sections in order of first appearance
+function extractAllUniqueChords(sections: SongSection[], transpose: number = 0): string[] {
+  const uniqueChords: string[] = [];
+  for (const section of sections) {
+    for (const line of section.lines) {
+      for (const chordPos of line.chords) {
+        const transposedChord = transposeChord(chordPos.chord, transpose);
+        if (!uniqueChords.includes(transposedChord)) {
+          uniqueChords.push(transposedChord);
+        }
+      }
     }
   }
-  return chords;
+  return uniqueChords;
 }
 
 // Chord Diagram Panel component
 function ChordDiagramPanel({
   sections,
-  currentSection,
   transpose,
   visible,
   onToggle,
 }: {
   sections: SongSection[];
-  currentSection: number;
   transpose: number;
   visible: boolean;
   onToggle: () => void;
 }) {
-  const section = sections[currentSection];
-  const chords = section ? extractChordsFromSection(section, transpose) : [];
-
-  // Get unique chords in order of first appearance
-  const uniqueChords: string[] = [];
-  for (const chord of chords) {
-    if (!uniqueChords.includes(chord)) {
-      uniqueChords.push(chord);
-    }
-  }
-
-  // Current chord is first, next chord is second (if available)
-  const currentChord = uniqueChords[0] || null;
-  const nextChord = uniqueChords[1] || null;
+  const uniqueChords = extractAllUniqueChords(sections, transpose);
 
   return (
     <>
@@ -101,29 +91,17 @@ function ChordDiagramPanel({
           visible ? "translate-y-0" : "translate-y-full"
         }`}
       >
-        <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[200px] flex items-center justify-center gap-16 px-8">
-          {currentChord ? (
-            <>
-              {/* Current chord */}
-              <div className="flex flex-col items-center">
-                <span className="text-amber-400/60 text-xs uppercase tracking-wider mb-2">
-                  Current
-                </span>
-                <ChordDiagram chordName={currentChord} size="lg" />
-              </div>
-
-              {/* Next chord */}
-              {nextChord && (
-                <div className="flex flex-col items-center opacity-60">
-                  <span className="text-white/40 text-xs uppercase tracking-wider mb-2">
-                    Next
-                  </span>
-                  <ChordDiagram chordName={nextChord} size="lg" />
+        <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[200px] flex items-center px-4">
+          {uniqueChords.length > 0 ? (
+            <div className="flex gap-6 overflow-x-auto w-full py-4 px-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+              {uniqueChords.map((chord, idx) => (
+                <div key={idx} className="flex-shrink-0">
+                  <ChordDiagram chordName={chord} size="md" />
                 </div>
-              )}
-            </>
+              ))}
+            </div>
           ) : (
-            <div className="text-white/30">No chords to display</div>
+            <div className="text-white/30 w-full text-center">No chords to display</div>
           )}
         </div>
       </div>
@@ -255,7 +233,6 @@ export default function RoomDisplayPage({
           {/* Chord diagram panel */}
           <ChordDiagramPanel
             sections={sections}
-            currentSection={roomState.currentSection}
             transpose={roomState.transpose}
             visible={showChordPanel}
             onToggle={() => setShowChordPanel(!showChordPanel)}
