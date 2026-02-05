@@ -445,94 +445,88 @@ function OverlayControls({
           <div className="w-[100px]" /> {/* Spacer for balance */}
         </div>
 
-        {/* Controls */}
-        <div className="flex flex-col gap-3">
-          {/* Transpose & Zoom row */}
-          <div className="flex items-center justify-center gap-4">
-            {/* Transpose controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleTransposeDown}
-                disabled={transpose <= -6}
-                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <span className="text-xl font-bold">−</span>
-              </button>
-              <div className="min-w-[70px] text-center">
-                <div className="section-label text-[10px]">Transponer</div>
-                <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
-                  {transpose > 0 ? `+${transpose}` : transpose}
-                </div>
+        {/* Controls row */}
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          {/* Transpose controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleTransposeDown}
+              disabled={transpose <= -6}
+              className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="text-xl font-bold">−</span>
+            </button>
+            <div className="min-w-[70px] text-center">
+              <div className="section-label text-[10px]">Transponer</div>
+              <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
+                {transpose > 0 ? `+${transpose}` : transpose}
               </div>
-              <button
-                onClick={handleTransposeUp}
-                disabled={transpose >= 6}
-                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <span className="text-xl font-bold">+</span>
-              </button>
             </div>
-
-            {/* Zoom controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleZoomDown}
-                disabled={zoom <= ZOOM_MIN}
-                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <span className="text-xl font-bold">−</span>
-              </button>
-              <div className="min-w-[60px] text-center">
-                <div className="section-label text-[10px] flex items-center justify-center gap-1">
-                  <ZoomIcon />
-                  <span>Zoom</span>
-                </div>
-                <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
-                  {Math.round(zoom * 100)}%
-                </div>
-              </div>
-              <button
-                onClick={handleZoomUp}
-                disabled={zoom >= ZOOM_MAX}
-                className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                <span className="text-xl font-bold">+</span>
-              </button>
-            </div>
+            <button
+              onClick={handleTransposeUp}
+              disabled={transpose >= 6}
+              className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="text-xl font-bold">+</span>
+            </button>
           </div>
 
-          {/* Toggle buttons row */}
-          <div className="flex items-center justify-center gap-3">
-            {/* Toggle chord diagrams */}
-            {song.format !== "tab" && (
-              <button
-                onClick={handleToggleChords}
-                className={`btn flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all ${
-                  showChordPanel
-                    ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
-                    : "btn-secondary"
-                }`}
-              >
-                <ChordIcon />
-                <span className="text-sm font-medium">Akkorder</span>
-              </button>
-            )}
-
-            {/* Keep screen on toggle */}
+          {/* Zoom controls */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={handleToggleWakeLock}
+              onClick={handleZoomDown}
+              disabled={zoom <= ZOOM_MIN}
+              className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="text-xl font-bold">−</span>
+            </button>
+            <div className="min-w-[60px] text-center">
+              <div className="section-label text-[10px] flex items-center justify-center gap-1">
+                <ZoomIcon />
+                <span>Zoom</span>
+              </div>
+              <div className="text-[var(--text-primary)] text-lg font-mono font-bold">
+                {Math.round(zoom * 100)}%
+              </div>
+            </div>
+            <button
+              onClick={handleZoomUp}
+              disabled={zoom >= ZOOM_MAX}
+              className="btn btn-secondary btn-icon disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="text-xl font-bold">+</span>
+            </button>
+          </div>
+
+          {/* Toggle chord diagrams */}
+          {song.format !== "tab" && (
+            <button
+              onClick={handleToggleChords}
               className={`btn flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all ${
-                wakeLockEnabled
-                  ? wakeLockActive
-                    ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
-                    : "bg-[rgba(251,191,36,0.15)] text-[var(--warning)]"
+                showChordPanel
+                  ? "bg-[var(--accent-muted)] text-[var(--accent-primary)] glow-accent"
                   : "btn-secondary"
               }`}
             >
-              {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
-              <span className="text-sm font-medium">Hold skjerm på</span>
+              <ChordIcon />
+              <span className="text-sm font-medium">Akkorder</span>
             </button>
-          </div>
+          )}
+
+          {/* Keep screen on toggle */}
+          <button
+            onClick={handleToggleWakeLock}
+            className={`btn flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all ${
+              wakeLockEnabled
+                ? wakeLockActive
+                  ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
+                  : "bg-[rgba(251,191,36,0.15)] text-[var(--warning)]"
+                : "btn-secondary"
+            }`}
+          >
+            {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
+            <span className="text-sm font-medium">Hold skjerm på</span>
+          </button>
         </div>
       </div>
     </div>
