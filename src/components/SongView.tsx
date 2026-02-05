@@ -198,7 +198,7 @@ function SongDisplay({
     : "h-screen overflow-hidden flex flex-col pb-[200px]";
 
   const contentClass = isLandscape
-    ? "h-full flex flex-col p-4 pt-8 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
+    ? "h-full flex flex-col p-4 pt-14 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
     : "flex-1 flex flex-col p-8 pt-16";
 
   const baseFontSize = isLandscape
@@ -538,7 +538,7 @@ interface SongViewProps {
 }
 
 // Zoom constants
-const ZOOM_MIN = 0.6;
+const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 1.6;
 const ZOOM_STEP = 0.1;
 const ZOOM_STORAGE_KEY = "sangboken-zoom";
