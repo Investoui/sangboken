@@ -58,57 +58,71 @@ function extractAllUniqueChords(sections: SongSection[], transpose: number = 0):
   return uniqueChords;
 }
 
-// Chord Diagram Panel component
+// Chord Diagram Panel component - adapts to landscape (right side) or portrait (bottom)
 function ChordDiagramPanel({
   sections,
   transpose,
   visible,
-  onToggle,
+  isLandscape,
 }: {
   sections: SongSection[];
   transpose: number;
   visible: boolean;
-  onToggle: () => void;
+  isLandscape: boolean;
 }) {
   const uniqueChords = extractAllUniqueChords(sections, transpose);
 
-  const handleToggleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggle();
-  };
+  if (!visible) return null;
 
-  return (
-    <>
-      {/* Toggle button - always visible */}
-      <button
-        onClick={handleToggleClick}
-        className="fixed bottom-4 right-4 z-20 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-white/70 hover:text-white transition-colors text-sm"
-      >
-        {visible ? "Hide Chords" : "Show Chords"}
-      </button>
-
-      {/* Chord panel */}
+  // Landscape: right side panel
+  if (isLandscape) {
+    return (
       <div
-        className={`fixed bottom-0 left-0 right-0 z-10 transition-transform duration-300 ${
-          visible ? "translate-y-0" : "translate-y-full"
-        }`}
+        className="h-full w-full bg-black/40 backdrop-blur-sm border-l border-white/10 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[200px] flex items-center px-4">
-          {uniqueChords.length > 0 ? (
-            <div className="flex gap-6 overflow-x-auto w-full py-4 px-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <div className="text-white/40 text-xs uppercase tracking-wider px-3 py-2 border-b border-white/10">
+          Chords
+        </div>
+        {uniqueChords.length > 0 ? (
+          <div className="flex-1 overflow-y-auto p-2">
+            <div className="grid grid-cols-2 gap-2">
               {uniqueChords.map((chord, idx) => (
-                <div key={idx} className="flex-shrink-0">
-                  <ChordDiagram chordName={chord} size="md" />
+                <div key={idx} className="flex justify-center">
+                  <ChordDiagram chordName={chord} size="sm" />
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-white/30 w-full text-center">No chords to display</div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-white/30 text-sm">
+            No chords
+          </div>
+        )}
       </div>
-    </>
+    );
+  }
+
+  // Portrait: bottom panel
+  return (
+    <div
+      className="fixed bottom-0 left-0 right-0 z-10"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[180px] flex items-center px-4">
+        {uniqueChords.length > 0 ? (
+          <div className="flex gap-6 overflow-x-auto w-full py-4 px-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+            {uniqueChords.map((chord, idx) => (
+              <div key={idx} className="flex-shrink-0">
+                <ChordDiagram chordName={chord} size="md" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-white/30 w-full text-center">No chords to display</div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -141,9 +155,11 @@ function TabDisplay({ song }: { song: Song }) {
 function SongDisplay({
   song,
   transpose,
+  isLandscape,
 }: {
   song: Song;
   transpose: number;
+  isLandscape: boolean;
 }) {
   // If it's a tab format, use TabDisplay
   if (song.format === "tab" && song.rawTab) {
@@ -152,11 +168,26 @@ function SongDisplay({
 
   const sections = song.sections;
 
+  // Landscape: use more horizontal space, no bottom padding needed
+  // Portrait: keep bottom padding for chord panel
+  const containerClass = isLandscape
+    ? "h-full overflow-auto"
+    : "h-screen overflow-hidden flex flex-col pb-[200px]";
+
+  const contentClass = isLandscape
+    ? "h-full flex flex-col p-4 pt-8"
+    : "flex-1 flex flex-col p-8 pt-16";
+
+  // Larger text in landscape since we have more room
+  const fontSize = isLandscape
+    ? 'clamp(0.7rem, 2vw, 1.5rem)'
+    : 'clamp(0.5rem, 1.5vw, 2rem)';
+
   return (
-    <div className="h-screen overflow-hidden flex flex-col pb-[220px]">
-      <div className="flex-1 flex flex-col p-8 pt-16" style={{ fontSize: 'clamp(0.5rem, 1.5vw, 2rem)' }}>
+    <div className={containerClass}>
+      <div className={contentClass} style={{ fontSize }}>
         {/* Song title */}
-        <div className="pb-2">
+        <div className="pb-2 flex-shrink-0">
           <h1 className="text-[1.5em] font-bold text-white mb-1">{song.title}</h1>
           {song.artist && (
             <div className="text-white/50 text-[0.9em]">{song.artist}</div>
@@ -168,10 +199,10 @@ function SongDisplay({
           )}
         </div>
 
-        {/* All sections displayed */}
-        <div className="flex-1 flex flex-col justify-start gap-4">
+        {/* All sections displayed - use columns in landscape for better space use */}
+        <div className={`flex-1 overflow-auto ${isLandscape ? 'columns-2 gap-8' : 'flex flex-col justify-start gap-4'}`}>
           {sections.map((section, sectionIdx) => (
-            <div key={sectionIdx}>
+            <div key={sectionIdx} className={isLandscape ? 'break-inside-avoid mb-4' : ''}>
               <div className="text-amber-500/60 text-[0.7em] uppercase tracking-wider mb-2">
                 {section.name}
               </div>
@@ -198,6 +229,9 @@ function OverlayControls({
   onTransposeChange,
   showChordPanel,
   onToggleChordPanel,
+  wakeLockEnabled,
+  wakeLockActive,
+  onToggleWakeLock,
 }: {
   visible: boolean;
   onInteraction: () => void;
@@ -209,6 +243,9 @@ function OverlayControls({
   onTransposeChange: (value: number) => void;
   showChordPanel: boolean;
   onToggleChordPanel: () => void;
+  wakeLockEnabled: boolean;
+  wakeLockActive: boolean;
+  onToggleWakeLock: () => void;
 }) {
   const [showSongPicker, setShowSongPicker] = useState(false);
 
@@ -243,6 +280,11 @@ function OverlayControls({
   const handleToggleChords = () => {
     onInteraction();
     onToggleChordPanel();
+  };
+
+  const handleToggleWakeLock = () => {
+    onInteraction();
+    onToggleWakeLock();
   };
 
   const handleSongSelect = (index: number) => {
@@ -358,6 +400,27 @@ function OverlayControls({
               <span className="text-sm font-medium">Chords</span>
             </button>
           )}
+
+          {/* Keep screen on toggle */}
+          <button
+            onClick={handleToggleWakeLock}
+            className={`min-h-[60px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+              wakeLockEnabled
+                ? wakeLockActive
+                  ? "bg-green-500/30 text-green-400"
+                  : "bg-yellow-500/30 text-yellow-400"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {wakeLockEnabled ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              )}
+            </svg>
+            <span className="text-sm font-medium">Screen</span>
+          </button>
         </div>
 
         {/* Song picker dropdown/list */}
@@ -403,6 +466,33 @@ export default function MirrorPage() {
   const [transpose, setTranspose] = useState(0);
   const [showChordPanel, setShowChordPanel] = useState(true);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  // Wake lock state
+  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  // Detect landscape orientation
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+
+    // Also listen for orientation change on mobile
+    window.addEventListener('orientationchange', () => {
+      // Small delay to let the browser update dimensions
+      setTimeout(checkOrientation, 100);
+    });
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
 
   // Timer ref for auto-hide
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -440,6 +530,66 @@ export default function MirrorPage() {
     resetHideTimer();
   }, [resetHideTimer]);
 
+  // Wake lock functions
+  const requestWakeLock = useCallback(async () => {
+    if (!("wakeLock" in navigator)) {
+      console.log("Wake Lock API not supported");
+      return false;
+    }
+    try {
+      wakeLockRef.current = await navigator.wakeLock.request("screen");
+      setWakeLockActive(true);
+      wakeLockRef.current.addEventListener("release", () => {
+        setWakeLockActive(false);
+      });
+      return true;
+    } catch (err) {
+      console.log("Wake lock request failed:", err);
+      setWakeLockActive(false);
+      return false;
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(async () => {
+    if (wakeLockRef.current) {
+      await wakeLockRef.current.release();
+      wakeLockRef.current = null;
+      setWakeLockActive(false);
+    }
+  }, []);
+
+  const toggleWakeLock = useCallback(async () => {
+    if (wakeLockEnabled) {
+      await releaseWakeLock();
+      setWakeLockEnabled(false);
+    } else {
+      const success = await requestWakeLock();
+      setWakeLockEnabled(success);
+    }
+  }, [wakeLockEnabled, requestWakeLock, releaseWakeLock]);
+
+  // Re-acquire wake lock when page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (wakeLockEnabled && document.visibilityState === "visible") {
+        await requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [wakeLockEnabled, requestWakeLock]);
+
+  // Cleanup wake lock on unmount
+  useEffect(() => {
+    return () => {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+      }
+    };
+  }, []);
+
   // Cleanup timer on unmount
   useEffect(() => {
     return () => {
@@ -460,20 +610,58 @@ export default function MirrorPage() {
 
   return (
     <div
-      className="min-h-screen bg-black relative cursor-pointer"
+      className="min-h-screen h-screen bg-black relative cursor-pointer overflow-hidden"
       onClick={handleScreenTap}
     >
-      {/* Song display */}
-      <SongDisplay song={currentSong} transpose={transpose} />
+      {/* Wake lock indicator */}
+      {wakeLockEnabled && (
+        <div className="fixed top-2 right-2 z-40 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              wakeLockActive ? "bg-green-400" : "bg-yellow-400 animate-pulse"
+            }`}
+          />
+          <span className="text-xs text-white/70">
+            {wakeLockActive ? "Screen on" : "Reconnecting..."}
+          </span>
+        </div>
+      )}
 
-      {/* Chord diagram panel - only for ChordPro format */}
-      {currentSong.format !== "tab" && (
-        <ChordDiagramPanel
-          sections={currentSong.sections}
-          transpose={transpose}
-          visible={showChordPanel}
-          onToggle={() => setShowChordPanel(!showChordPanel)}
-        />
+      {/* Main content area - side by side in landscape */}
+      {isLandscape ? (
+        <div className="h-full flex">
+          {/* Song display - takes most of the width */}
+          <div className={`flex-1 h-full overflow-hidden ${showChordPanel && currentSong.format !== "tab" ? '' : ''}`}>
+            <SongDisplay song={currentSong} transpose={transpose} isLandscape={true} />
+          </div>
+
+          {/* Chord diagram panel on the right - only for ChordPro format */}
+          {currentSong.format !== "tab" && showChordPanel && (
+            <div className="w-[180px] h-full flex-shrink-0">
+              <ChordDiagramPanel
+                sections={currentSong.sections}
+                transpose={transpose}
+                visible={showChordPanel}
+                isLandscape={true}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Portrait: stacked layout */}
+          <SongDisplay song={currentSong} transpose={transpose} isLandscape={false} />
+
+          {/* Chord diagram panel at bottom - only for ChordPro format */}
+          {currentSong.format !== "tab" && (
+            <ChordDiagramPanel
+              sections={currentSong.sections}
+              transpose={transpose}
+              visible={showChordPanel}
+              isLandscape={false}
+            />
+          )}
+        </>
       )}
 
       {/* Overlay controls - slides up on tap */}
@@ -491,6 +679,9 @@ export default function MirrorPage() {
         onTransposeChange={setTranspose}
         showChordPanel={showChordPanel}
         onToggleChordPanel={() => setShowChordPanel(!showChordPanel)}
+        wakeLockEnabled={wakeLockEnabled}
+        wakeLockActive={wakeLockActive}
+        onToggleWakeLock={toggleWakeLock}
       />
     </div>
   );
