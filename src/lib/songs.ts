@@ -52,16 +52,26 @@ const hurraForDegChordPro = `
 {key: D}
 
 {verse: Vers 1}
-[D]Hurra for deg som [A7]fyller ditt [D]år! [A7]Ja, [D]deg vil vi gratu[A7]lere!
-[D]Alle i ring omkring deg vi [A7]står, og [D]se, nå vil vi [A7]mar[D]sjere,
-[G]bukke, nikke, neie, snu oss [D]omkring, [B7]danse så for deg med hopp og sprett og [Em]spring,
-ønske deg av hjertet [A7]alle gode [D]ting og [A7]si meg så, hva vil du [D]mere? [A7]Gratu[D]lere!
+[D]Hurra for deg som [A7]fyller ditt [D]år!
+[A7]Ja, deg vil vi gratu[D]lere!
+[D]Alle i ring omkring deg vi [A7]står,
+og [D]se, nå vil vi [A7]mar[D]sjere,
+[G]bukke, nikke, neie, snu oss [D]omkring,
+[B7]danse så for deg med hopp og sprett og [Em]spring,
+[A7]ønske deg av hjertet [D]alle gode [A7]ting
+og [D]si meg så, hva vil du [A7]me[D]re?
+[A7]Gratu[D]lere!
 
 {verse: Vers 2}
-[D]Høyt våre flagg vi [A7]svinger, [D]hurra! [A7]Ja, [D]nå vil vi riktig [A7]feste!
-[D]Dagen er din, og dagen er [A7]bra, men [D]du er den aller [A7]bes[D]te!
-[G]Se deg om i ringen hvem du [D]vil ta, [B7]dans så en dans med den du helst vil [Em]ha!
-Vi vil alle sammen [A7]svinge oss så [D]gå; og [A7]en av oss skal bli den [D]neste! [A7]Til å [D]feste!
+[D]Høyt våre flagg vi [A7]svinger, [D]hurra!
+[A7]Ja, nå vil vi riktig [D]feste!
+[D]Dagen er din, og dagen er [A7]bra,
+men [D]du er den aller [A7]bes[D]te!
+[G]Se deg om i ringen hvem du [D]vil ta,
+[B7]dans så en dans med den du helst vil [Em]ha!
+[A7]Vi vil alle sammen [D]svinge oss så [A7]gå;
+og [D]en av oss skal bli den [A7]nes[D]te!
+[A7]Til å [D]feste!
 `;
 
 const lillePetterEdderkoppChordPro = `
