@@ -37,13 +37,13 @@ const baeBaeLilleLamChordPro = `
 [C]Bæ, bæ, [G]lille [C]lam,
 har du noe [G]ull?
 [C]Ja, ja, [G]kjære [C]barn,
-jeg har [G]kroppen [C]full.
+jeg har [G]ullen [C]full.
 
 {verse: Vers 2}
-[C]Søndags[G]kåpe [C]skal du få
-og [G]nattlue [C]blå.
-[C]Og så et [G]par små [C]votter
-med [G]remse [C]på.
+[C]Søndags[G]kjole [C]skal mor få,
+[G]far får nye [C]sko.
+[C]Og jeg skal [G]ha en [C]liten trøye
+[G]strikket [C]tå mot tå.
 `;
 
 const hurraForDegChordPro = `
@@ -82,12 +82,12 @@ const lillePetterEdderkoppChordPro = `
 {verse: Vers 1}
 [D]Lille Petter [A]Edderkopp
 [A7]klatret opp i [D]taket.
-[D]Så kom regnet, [A]skylte han ned,
-[A7]ned i vanne[D]gransen.
+[D]Så kom regnet, [A]skylte ham ned,
+[A7]ned i vanne[D]rennen.
 
 {verse: Vers 2}
-[D]Opp kom solen, [A]tørket ham opp,
-[A7]så var han like [D]blansen.
+[D]Opp kom solen, [A]tørket vann,
+[A7]Petter klatret [D]opp igjen.
 [D]Lille Petter [A]Edderkopp
 [A7]klatret opp i [D]taket.
 `;
