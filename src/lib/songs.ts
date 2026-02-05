@@ -46,6 +46,34 @@ og [G]nattlue [C]blå.
 med [G]remse [C]på.
 `;
 
+const hurraForDegChordPro = `
+{title: Hurra for deg!}
+{artist: Margrethe Munthe}
+{key: D}
+
+{verse: Vers 1}
+[D]Hurra for deg som fyller ditt år!
+[A7]Ja, [D]deg vil vi gratu[A7]lere!
+[D]Alle i ring omkring deg vi [A7]står,
+og [D]se, nå vil vi mar[A7]sje[D]re,
+[G]bukke, nikke, neie, snu oss om[D]kring,
+[B7]danse så for deg med hopp og sprett og [Em]spring,
+ønske deg av hjertet [A7]alle gode [D]ting
+og [A7]si meg så, hva vil du [D]mere?
+[A7]Gratu[D]lere!
+
+{verse: Vers 2}
+[D]Høyt våre flagg vi svinger, hurra!
+[A7]Ja, [D]nå vil vi riktig [A7]feste!
+[D]Dagen er din, og dagen er [A7]bra,
+men [D]du er den aller [A7]bes[D]te!
+[G]Se deg om i ringen hvem du vil [D]ta,
+[B7]dans så en dans med den du helst vil [Em]ha!
+Vi vil alle sammen [A7]svinge oss så [D]gå;
+og [A7]en av oss skal bli den [D]neste!
+[A7]Til å [D]feste!
+`;
+
 const lillePetterEdderkoppChordPro = `
 {title: Lille Petter Edderkopp}
 {artist: Tradisjonell}
@@ -301,6 +329,7 @@ Legend: h=hammer-on, p=pull-off, \\=slide, ~=vibrato, (n)=ghost note, b=bend, r=
 
 // Parse all songs from ChordPro format
 const parsedSongs: Song[] = [
+  parseChordPro(hurraForDegChordPro, "hurra-for-deg"),
   parseChordPro(kuaMiChordPro, "kua-mi"),
   parseChordPro(baeBaeLilleLamChordPro, "bae-bae-lille-lam"),
   parseChordPro(lillePetterEdderkoppChordPro, "lille-petter-edderkopp"),
