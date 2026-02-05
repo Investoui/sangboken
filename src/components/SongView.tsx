@@ -215,13 +215,14 @@ function SongDisplay({
     : "clamp(0.5rem, 1.5vw, 2rem)";
   const fontSize = `calc(${baseFontSize} * ${zoom})`;
 
-  const sectionsLayoutClass =
-    isLandscape && !isLongSong
-      ? "flex-1 overflow-auto columns-2 gap-8"
-      : "flex-1 overflow-auto flex flex-col justify-start gap-4";
+  // Use columns in landscape when song is short OR when zoomed out enough
+  const useColumns = isLandscape && (!isLongSong || zoom <= 0.7);
 
-  const sectionItemClass =
-    isLandscape && !isLongSong ? "break-inside-avoid mb-4" : "";
+  const sectionsLayoutClass = useColumns
+    ? "flex-1 overflow-auto columns-2 gap-8"
+    : "flex-1 overflow-auto flex flex-col justify-start gap-4";
+
+  const sectionItemClass = useColumns ? "break-inside-avoid mb-4" : "";
 
   return (
     <div className={containerClass}>
