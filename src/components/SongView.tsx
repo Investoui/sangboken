@@ -143,7 +143,7 @@ function ChordDiagramPanel({
 function TabDisplay({ song }: { song: Song }) {
   return (
     <div className="h-screen overflow-auto pb-[220px]">
-      <div className="p-8 pt-16">
+      <div className="p-8 pt-16 pl-[max(2rem,env(safe-area-inset-left))] pr-[max(2rem,env(safe-area-inset-right))]">
         <div className="pb-4">
           <h1 className="text-2xl font-display font-bold text-[var(--text-primary)] mb-1">
             {song.title}
@@ -196,7 +196,7 @@ function SongDisplay({
     : "h-screen overflow-hidden flex flex-col pb-[200px]";
 
   const contentClass = isLandscape
-    ? "h-full flex flex-col p-4 pt-8"
+    ? "h-full flex flex-col p-4 pt-8 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
     : "flex-1 flex flex-col p-8 pt-16";
 
   const fontSize = isLandscape
@@ -450,7 +450,7 @@ function OverlayControls({
           {/* Keep screen on toggle */}
           <button
             onClick={handleToggleWakeLock}
-            className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-4 transition-all ${
+            className={`btn btn-icon-lg flex items-center justify-center gap-2 rounded-xl px-5 whitespace-nowrap transition-all ${
               wakeLockEnabled
                 ? wakeLockActive
                   ? "bg-[rgba(74,222,128,0.15)] text-[var(--success)]"
@@ -459,7 +459,7 @@ function OverlayControls({
             }`}
           >
             {wakeLockEnabled ? <SunIcon /> : <MoonIcon />}
-            <span className="text-sm font-medium">Skjerm</span>
+            <span className="text-sm font-medium">Hold skjerm på</span>
           </button>
         </div>
       </div>
@@ -477,8 +477,8 @@ export function SongView({ song }: SongViewProps) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
 
-  // Wake lock state
-  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  // Wake lock state - enabled by default
+  const [wakeLockEnabled, setWakeLockEnabled] = useState(true);
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
@@ -567,6 +567,13 @@ export function SongView({ song }: SongViewProps) {
     }
   }, [wakeLockEnabled, requestWakeLock, releaseWakeLock]);
 
+  // Request wake lock on mount (since it's enabled by default)
+  useEffect(() => {
+    if (wakeLockEnabled) {
+      requestWakeLock();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Re-acquire wake lock when page becomes visible again
   useEffect(() => {
     const handleVisibilityChange = async () => {
@@ -605,7 +612,13 @@ export function SongView({ song }: SongViewProps) {
     >
       {/* Wake lock indicator */}
       {wakeLockEnabled && (
-        <div className="fixed top-2 right-2 z-40 flex items-center gap-1.5 glass px-3 py-1.5 rounded-full animate-fade-down">
+        <div
+          className="fixed z-40 flex items-center gap-1.5 glass px-3 py-1.5 rounded-full animate-fade-down"
+          style={{
+            top: "max(0.5rem, env(safe-area-inset-top))",
+            right: "max(0.5rem, env(safe-area-inset-right))",
+          }}
+        >
           <div
             className={`w-2 h-2 rounded-full ${
               wakeLockActive
@@ -619,10 +632,14 @@ export function SongView({ song }: SongViewProps) {
         </div>
       )}
 
-      {/* Back button (always visible, top left) */}
+      {/* Back button (always visible, top left, respects safe area) */}
       <Link
         href="/"
-        className="fixed top-3 left-3 z-50 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-4 py-2.5 rounded-full text-white/80 hover:text-white hover:bg-black/90 transition-colors border border-white/10"
+        className="fixed z-50 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-4 py-2.5 rounded-full text-white/80 hover:text-white hover:bg-black/90 transition-colors border border-white/10"
+        style={{
+          top: "max(0.75rem, env(safe-area-inset-top))",
+          left: "max(0.75rem, env(safe-area-inset-left))",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <BackIcon />
