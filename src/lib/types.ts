@@ -10,3 +10,12 @@ export interface RoomState {
   createdAt: number;
   lastActivity: number;
 }
+
+// Command types for controller actions
+export type RoomCommand =
+  | { type: "setSong"; songId: string }
+  | { type: "nextSection" }
+  | { type: "prevSection" }
+  | { type: "scroll"; position: number }
+  | { type: "transpose"; value: number }
+  | { type: "setAutoScroll"; enabled: boolean; speed?: number };
