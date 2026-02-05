@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Song, SongSection, SongLine } from "@/lib/types";
 import { ChordDiagram } from "@/components/ChordDiagram";
 import { transposeChord } from "@/lib/transpose";
@@ -61,106 +61,314 @@ function extractAllUniqueChords(
   return uniqueChords;
 }
 
-// Tab Display component - for tablature format
-function TabDisplay({ song }: { song: Song }) {
+// Chord Diagram Panel component
+function ChordDiagramPanel({
+  sections,
+  transpose,
+  visible,
+  isLandscape,
+  onHide,
+}: {
+  sections: SongSection[];
+  transpose: number;
+  visible: boolean;
+  isLandscape: boolean;
+  onHide: () => void;
+}) {
+  const uniqueChords = extractAllUniqueChords(sections, transpose);
+
+  if (!visible) return null;
+
+  if (isLandscape) {
+    return (
+      <div
+        className="h-full w-full bg-black/40 backdrop-blur-sm border-l border-white/10 flex flex-col cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          onHide();
+        }}
+        title="Tap to hide"
+      >
+        <div className="text-white/40 text-xs uppercase tracking-wider px-3 py-2 border-b border-white/10 flex justify-between items-center">
+          <span>Akkorder</span>
+          <span className="text-white/20">tap to hide</span>
+        </div>
+        {uniqueChords.length > 0 ? (
+          <div className="flex-1 overflow-y-auto p-2">
+            <div className="grid grid-cols-2 gap-2">
+              {uniqueChords.map((chord, idx) => (
+                <div key={idx} className="flex justify-center">
+                  <ChordDiagram chordName={chord} size="sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-white/30 text-sm">
+            No chords
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="pb-8">
-      {/* Tab content - monospace pre-formatted */}
-      <pre className="font-mono text-sm md:text-base text-white/90 whitespace-pre overflow-x-auto leading-relaxed">
-        {song.rawTab}
-      </pre>
+    <div
+      className="fixed bottom-0 left-0 right-0 z-10"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[180px] flex items-center px-4">
+        {uniqueChords.length > 0 ? (
+          <div className="flex gap-6 overflow-x-auto w-full py-4 px-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+            {uniqueChords.map((chord, idx) => (
+              <div key={idx} className="flex-shrink-0">
+                <ChordDiagram chordName={chord} size="md" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-white/30 w-full text-center">
+            No chords to display
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-interface SongViewProps {
-  song: Song;
-  showBackLink?: boolean;
+// Tab Display component
+function TabDisplay({ song }: { song: Song }) {
+  return (
+    <div className="h-screen overflow-auto pb-[220px]">
+      <div className="p-8 pt-16">
+        <div className="pb-4">
+          <h1 className="text-2xl font-bold text-white mb-1">{song.title}</h1>
+          {song.artist && (
+            <div className="text-white/50 text-lg">{song.artist}</div>
+          )}
+          {song.key && (
+            <div className="text-amber-400/60 text-sm mt-1">
+              Toneart: {song.key}
+            </div>
+          )}
+        </div>
+        <pre className="font-mono text-sm md:text-base lg:text-lg text-white/90 whitespace-pre overflow-x-auto leading-relaxed">
+          {song.rawTab}
+        </pre>
+      </div>
+    </div>
+  );
 }
 
-export function SongView({ song, showBackLink = true }: SongViewProps) {
-  const [transpose, setTranspose] = useState(0);
-  const [showChords, setShowChords] = useState(true);
+// Helper to find max lines in any single verse
+function maxLinesPerVerse(sections: SongSection[]): number {
+  if (sections.length === 0) return 0;
+  return Math.max(...sections.map((section) => section.lines.length));
+}
 
-  const uniqueChords = extractAllUniqueChords(song.sections, transpose);
-  const isTab = song.format === "tab" && song.rawTab;
+// Song Display component
+function SongDisplay({
+  song,
+  transpose,
+  isLandscape,
+}: {
+  song: Song;
+  transpose: number;
+  isLandscape: boolean;
+}) {
+  if (song.format === "tab" && song.rawTab) {
+    return <TabDisplay song={song} />;
+  }
+
+  const sections = song.sections;
+  const maxLines = maxLinesPerVerse(sections);
+  const isLongSong = maxLines > 5;
+
+  const containerClass = isLandscape
+    ? "h-full overflow-auto"
+    : "h-screen overflow-hidden flex flex-col pb-[200px]";
+
+  const contentClass = isLandscape
+    ? "h-full flex flex-col p-4 pt-8"
+    : "flex-1 flex flex-col p-8 pt-16";
+
+  const fontSize = isLandscape
+    ? "clamp(0.7rem, 2vw, 1.5rem)"
+    : "clamp(0.5rem, 1.5vw, 2rem)";
+
+  const sectionsLayoutClass =
+    isLandscape && !isLongSong
+      ? "flex-1 overflow-auto columns-2 gap-8"
+      : "flex-1 overflow-auto flex flex-col justify-start gap-4";
+
+  const sectionItemClass = isLandscape && !isLongSong ? "break-inside-avoid mb-4" : "";
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="mb-8">
-          {showBackLink && (
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-white/50 hover:text-white mb-4 transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              Alle sanger
-            </Link>
-          )}
-
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+    <div className={containerClass}>
+      <div className={contentClass} style={{ fontSize }}>
+        <div className="pb-2 flex-shrink-0">
+          <h1 className="text-[1.5em] font-bold text-white mb-1">
             {song.title}
           </h1>
           {song.artist && (
-            <p className="text-white/50 text-lg">{song.artist}</p>
+            <div className="text-white/50 text-[0.9em]">{song.artist}</div>
           )}
-          {song.key && (
-            <p className="text-amber-400/60 text-sm mt-1">
-              Toneart: {song.key}
-              {transpose !== 0 && (
-                <span className="ml-2">
-                  (transponert {transpose > 0 ? "+" : ""}
-                  {transpose})
-                </span>
-              )}
-            </p>
-          )}
-        </header>
-
-        {/* Controls */}
-        {!isTab && (
-          <div className="flex flex-wrap items-center gap-4 mb-8 p-4 bg-white/5 rounded-xl">
-            {/* Transpose controls */}
-            <div className="flex items-center gap-2">
-              <span className="text-white/50 text-sm">Transponer:</span>
-              <button
-                onClick={() => setTranspose((t) => Math.max(t - 1, -6))}
-                disabled={transpose <= -6}
-                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-lg text-white text-xl font-bold transition-colors"
-              >
-                −
-              </button>
-              <span className="w-8 text-center text-white font-mono">
-                {transpose > 0 ? `+${transpose}` : transpose}
-              </span>
-              <button
-                onClick={() => setTranspose((t) => Math.min(t + 1, 6))}
-                disabled={transpose >= 6}
-                className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-lg text-white text-xl font-bold transition-colors"
-              >
-                +
-              </button>
+          {song.key && transpose !== 0 && (
+            <div className="text-amber-400/60 text-[0.7em] mt-1">
+              Transponert {transpose > 0 ? "+" : ""}
+              {transpose} halvtoner
             </div>
+          )}
+        </div>
 
-            {/* Toggle chord diagrams */}
+        <div className={sectionsLayoutClass}>
+          {sections.map((section, sectionIdx) => (
+            <div key={sectionIdx} className={sectionItemClass}>
+              <div className="text-amber-500/60 text-[0.7em] uppercase tracking-wider mb-2">
+                {section.name}
+              </div>
+              {section.lines.map((line, lineIdx) => (
+                <ChordLine key={lineIdx} line={line} transpose={transpose} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Overlay Controls component
+function OverlayControls({
+  visible,
+  onInteraction,
+  song,
+  transpose,
+  onTransposeChange,
+  showChordPanel,
+  onToggleChordPanel,
+  wakeLockEnabled,
+  wakeLockActive,
+  onToggleWakeLock,
+}: {
+  visible: boolean;
+  onInteraction: () => void;
+  song: Song;
+  transpose: number;
+  onTransposeChange: (value: number) => void;
+  showChordPanel: boolean;
+  onToggleChordPanel: () => void;
+  wakeLockEnabled: boolean;
+  wakeLockActive: boolean;
+  onToggleWakeLock: () => void;
+}) {
+  const handleTransposeDown = () => {
+    onInteraction();
+    if (transpose > -6) {
+      onTransposeChange(transpose - 1);
+    }
+  };
+
+  const handleTransposeUp = () => {
+    onInteraction();
+    if (transpose < 6) {
+      onTransposeChange(transpose + 1);
+    }
+  };
+
+  const handleToggleChords = () => {
+    onInteraction();
+    onToggleChordPanel();
+  };
+
+  const handleToggleWakeLock = () => {
+    onInteraction();
+    onToggleWakeLock();
+  };
+
+  return (
+    <div
+      className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 ease-out ${
+        visible
+          ? "translate-y-0 opacity-100"
+          : "translate-y-full opacity-0 pointer-events-none"
+      }`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onInteraction();
+      }}
+      onTouchStart={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <div className="bg-black/90 backdrop-blur-md border-t border-white/10 p-4">
+        {/* Song title and back button */}
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            <span className="text-sm">Alle sanger</span>
+          </Link>
+          <div className="text-center flex-1 mx-4">
+            <h2 className="text-white text-xl font-bold truncate">
+              {song.title}
+            </h2>
+            {song.artist && (
+              <div className="text-white/50 text-sm">{song.artist}</div>
+            )}
+          </div>
+          <div className="w-[100px]" /> {/* Spacer for balance */}
+        </div>
+
+        {/* Controls row */}
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          {/* Transpose controls */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowChords(!showChords)}
-              className={`px-4 h-10 flex items-center gap-2 rounded-lg transition-colors ${
-                showChords
+              onClick={handleTransposeDown}
+              disabled={transpose <= -6}
+              className="min-h-[50px] min-w-[50px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white text-xl font-bold transition-colors"
+            >
+              −
+            </button>
+            <div className="min-w-[70px] text-center">
+              <div className="text-white/50 text-xs uppercase tracking-wider">
+                Transponer
+              </div>
+              <div className="text-white text-lg font-bold">
+                {transpose > 0 ? `+${transpose}` : transpose}
+              </div>
+            </div>
+            <button
+              onClick={handleTransposeUp}
+              disabled={transpose >= 6}
+              className="min-h-[50px] min-w-[50px] flex items-center justify-center bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:text-white/30 rounded-xl text-white text-xl font-bold transition-colors"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Toggle chord diagrams */}
+          {song.format !== "tab" && (
+            <button
+              onClick={handleToggleChords}
+              className={`min-h-[50px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+                showChordPanel
                   ? "bg-amber-500/30 text-amber-400"
                   : "bg-white/10 text-white/70 hover:bg-white/20"
               }`}
@@ -178,66 +386,284 @@ export function SongView({ song, showBackLink = true }: SongViewProps) {
                   d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m6 10V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"
                 />
               </svg>
-              Akkorddiagram
+              <span className="text-sm font-medium">Akkorder</span>
             </button>
+          )}
 
-            {/* Mirror mode link */}
-            <Link
-              href="/mirror"
-              className="px-4 h-10 flex items-center gap-2 rounded-lg bg-white/10 text-white/70 hover:bg-white/20 transition-colors ml-auto"
+          {/* Keep screen on toggle */}
+          <button
+            onClick={handleToggleWakeLock}
+            className={`min-h-[50px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+              wakeLockEnabled
+                ? wakeLockActive
+                  ? "bg-green-500/30 text-green-400"
+                  : "bg-yellow-500/30 text-yellow-400"
+                : "bg-white/10 text-white/70 hover:bg-white/20"
+            }`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              {wakeLockEnabled ? (
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
                 />
-              </svg>
-              Vis på TV
-            </Link>
-          </div>
-        )}
-
-        {/* Chord diagrams */}
-        {!isTab && showChords && uniqueChords.length > 0 && (
-          <div className="mb-8 p-4 bg-white/5 rounded-xl">
-            <div className="text-white/40 text-xs uppercase tracking-wider mb-3">
-              Akkorder
-            </div>
-            <div className="flex flex-wrap gap-4">
-              {uniqueChords.map((chord, idx) => (
-                <ChordDiagram key={idx} chordName={chord} size="md" />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Song content */}
-        <div className="text-base md:text-lg">
-          {isTab ? (
-            <TabDisplay song={song} />
-          ) : (
-            <div className="space-y-6">
-              {song.sections.map((section, sectionIdx) => (
-                <div key={sectionIdx}>
-                  <div className="text-amber-500/60 text-sm uppercase tracking-wider mb-3">
-                    {section.name}
-                  </div>
-                  {section.lines.map((line, lineIdx) => (
-                    <ChordLine key={lineIdx} line={line} transpose={transpose} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                />
+              )}
+            </svg>
+            <span className="text-sm font-medium">Skjerm</span>
+          </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+interface SongViewProps {
+  song: Song;
+}
+
+export function SongView({ song }: SongViewProps) {
+  const [transpose, setTranspose] = useState(0);
+  const [showChordPanel, setShowChordPanel] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  // Wake lock state
+  const [wakeLockEnabled, setWakeLockEnabled] = useState(false);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  // Detect landscape orientation
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+
+    checkOrientation();
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", () => {
+      setTimeout(checkOrientation, 100);
+    });
+
+    return () => {
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
+    };
+  }, []);
+
+  // Timer ref for auto-hide
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to reset the auto-hide timer
+  const resetHideTimer = useCallback(() => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+    }
+    hideTimerRef.current = setTimeout(() => {
+      setShowOverlay(false);
+    }, 3000);
+  }, []);
+
+  // Handle screen tap to toggle overlay
+  const handleScreenTap = useCallback(() => {
+    if (!showOverlay) {
+      setShowOverlay(true);
+      resetHideTimer();
+    } else {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+      setShowOverlay(false);
+    }
+  }, [showOverlay, resetHideTimer]);
+
+  // Handle any interaction with the overlay
+  const handleOverlayInteraction = useCallback(() => {
+    resetHideTimer();
+  }, [resetHideTimer]);
+
+  // Wake lock functions
+  const requestWakeLock = useCallback(async () => {
+    if (!("wakeLock" in navigator)) {
+      return false;
+    }
+    try {
+      wakeLockRef.current = await navigator.wakeLock.request("screen");
+      setWakeLockActive(true);
+      wakeLockRef.current.addEventListener("release", () => {
+        setWakeLockActive(false);
+      });
+      return true;
+    } catch {
+      setWakeLockActive(false);
+      return false;
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(async () => {
+    if (wakeLockRef.current) {
+      await wakeLockRef.current.release();
+      wakeLockRef.current = null;
+      setWakeLockActive(false);
+    }
+  }, []);
+
+  const toggleWakeLock = useCallback(async () => {
+    if (wakeLockEnabled) {
+      await releaseWakeLock();
+      setWakeLockEnabled(false);
+    } else {
+      const success = await requestWakeLock();
+      setWakeLockEnabled(success);
+    }
+  }, [wakeLockEnabled, requestWakeLock, releaseWakeLock]);
+
+  // Re-acquire wake lock when page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (wakeLockEnabled && document.visibilityState === "visible") {
+        await requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [wakeLockEnabled, requestWakeLock]);
+
+  // Cleanup wake lock on unmount
+  useEffect(() => {
+    return () => {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+      }
+    };
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <div
+      className="min-h-screen h-screen bg-black relative cursor-pointer overflow-hidden"
+      onClick={handleScreenTap}
+    >
+      {/* Wake lock indicator */}
+      {wakeLockEnabled && (
+        <div className="fixed top-2 right-2 z-40 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+          <div
+            className={`w-2 h-2 rounded-full ${
+              wakeLockActive ? "bg-green-400" : "bg-yellow-400 animate-pulse"
+            }`}
+          />
+          <span className="text-xs text-white/70">
+            {wakeLockActive ? "Skjerm på" : "Kobler til..."}
+          </span>
+        </div>
+      )}
+
+      {/* Back button (always visible, top left) */}
+      <Link
+        href="/"
+        className="fixed top-2 left-2 z-40 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-3 py-2 rounded-full text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        <span className="text-sm">Tilbake</span>
+      </Link>
+
+      {/* Main content area */}
+      {isLandscape ? (
+        <div className="h-full flex">
+          <div className="flex-1 h-full overflow-hidden">
+            <SongDisplay song={song} transpose={transpose} isLandscape={true} />
+          </div>
+
+          {song.format !== "tab" && showChordPanel && (
+            <div className="w-[180px] h-full flex-shrink-0">
+              <ChordDiagramPanel
+                sections={song.sections}
+                transpose={transpose}
+                visible={showChordPanel}
+                isLandscape={true}
+                onHide={() => setShowChordPanel(false)}
+              />
+            </div>
+          )}
+
+          {song.format !== "tab" && !showChordPanel && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowChordPanel(true);
+              }}
+              className="fixed right-0 top-1/2 -translate-y-1/2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 px-2 py-4 rounded-l-lg border border-r-0 border-amber-500/30 transition-colors"
+              style={{ writingMode: "vertical-rl" }}
+            >
+              Vis akkorder
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <SongDisplay song={song} transpose={transpose} isLandscape={false} />
+
+          {song.format !== "tab" && (
+            <ChordDiagramPanel
+              sections={song.sections}
+              transpose={transpose}
+              visible={showChordPanel}
+              isLandscape={false}
+              onHide={() => setShowChordPanel(false)}
+            />
+          )}
+        </>
+      )}
+
+      {/* Overlay controls */}
+      <OverlayControls
+        visible={showOverlay}
+        onInteraction={handleOverlayInteraction}
+        song={song}
+        transpose={transpose}
+        onTransposeChange={setTranspose}
+        showChordPanel={showChordPanel}
+        onToggleChordPanel={() => setShowChordPanel(!showChordPanel)}
+        wakeLockEnabled={wakeLockEnabled}
+        wakeLockActive={wakeLockActive}
+        onToggleWakeLock={toggleWakeLock}
+      />
     </div>
   );
 }
