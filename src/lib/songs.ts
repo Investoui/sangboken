@@ -54,12 +54,12 @@ const hurraForDegChordPro = `
 {verse: Vers 1}
 [D]Hurra for deg som [A7]fyl-ler ditt år!
 Ja, [D]deg vil vi gra-tu-[A7]le-[D]re!
-[D]Alle i ring om-[A7]kring deg vi står,
-og [D]se, nå vil vi mar-[A7]sje-[D]re,
+[D]Alle i ring om-kring[A7] deg vi står,
+og [D]se, nå vil vi mar-sje[A7]-re[D],
 [G]bukke, nikke, neie, [D]snu oss omkring,
 [A7]danse så for deg med [D]hopp og sprett og spring,
 [G]ønske deg av hjertet [D]alle gode [H7]ting
-og [Em]si meg så, hva vil du [A7]me[D]re?
+og [Em]si meg så, hva vil du [A7]me-[D]re?
 Gratu-[A7]le-[D]re!
 
 {verse: Vers 2}
