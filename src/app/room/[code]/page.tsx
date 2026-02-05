@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { RoomState } from "@/lib/types";
+import { ChordDiagram } from "@/components/ChordDiagram";
 
 // Demo song data structure for chord rendering
 // This will be replaced with real data from US-009
@@ -94,6 +95,17 @@ function ChordLine({ line }: { line: SongLine }) {
   );
 }
 
+// Extract all chords from a section in order
+function extractChordsFromSection(section: SongSection): string[] {
+  const chords: string[] = [];
+  for (const line of section.lines) {
+    for (const chordPos of line.chords) {
+      chords.push(chordPos.chord);
+    }
+  }
+  return chords;
+}
+
 function SongDisplay({
   sections,
   currentSection,
@@ -116,6 +128,79 @@ function SongDisplay({
   );
 }
 
+// Chord Diagram Panel component
+function ChordDiagramPanel({
+  sections,
+  currentSection,
+  visible,
+  onToggle,
+}: {
+  sections: SongSection[];
+  currentSection: number;
+  visible: boolean;
+  onToggle: () => void;
+}) {
+  const section = sections[currentSection];
+  const chords = section ? extractChordsFromSection(section) : [];
+
+  // Get unique chords in order of first appearance
+  const uniqueChords: string[] = [];
+  for (const chord of chords) {
+    if (!uniqueChords.includes(chord)) {
+      uniqueChords.push(chord);
+    }
+  }
+
+  // Current chord is first, next chord is second (if available)
+  const currentChord = uniqueChords[0] || null;
+  const nextChord = uniqueChords[1] || null;
+
+  return (
+    <>
+      {/* Toggle button - always visible */}
+      <button
+        onClick={onToggle}
+        className="fixed bottom-4 right-4 z-20 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-white/70 hover:text-white transition-colors text-sm"
+      >
+        {visible ? "Hide Chords" : "Show Chords"}
+      </button>
+
+      {/* Chord panel */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-10 transition-transform duration-300 ${
+          visible ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
+        <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[200px] flex items-center justify-center gap-16 px-8">
+          {currentChord ? (
+            <>
+              {/* Current chord */}
+              <div className="flex flex-col items-center">
+                <span className="text-amber-400/60 text-xs uppercase tracking-wider mb-2">
+                  Current
+                </span>
+                <ChordDiagram chordName={currentChord} size="lg" />
+              </div>
+
+              {/* Next chord */}
+              {nextChord && (
+                <div className="flex flex-col items-center opacity-60">
+                  <span className="text-white/40 text-xs uppercase tracking-wider mb-2">
+                    Next
+                  </span>
+                  <ChordDiagram chordName={nextChord} size="lg" />
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-white/30">No chords to display</div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function RoomDisplayPage({
   params,
 }: {
@@ -125,6 +210,7 @@ export default function RoomDisplayPage({
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(true);
+  const [showChordPanel, setShowChordPanel] = useState(true);
 
   // Resolve params
   useEffect(() => {
@@ -200,10 +286,19 @@ export default function RoomDisplayPage({
 
       {/* Song display */}
       {roomState.currentSong ? (
-        <SongDisplay
-          sections={demoSong}
-          currentSection={roomState.currentSection}
-        />
+        <>
+          <SongDisplay
+            sections={demoSong}
+            currentSection={roomState.currentSection}
+          />
+          {/* Chord diagram panel */}
+          <ChordDiagramPanel
+            sections={demoSong}
+            currentSection={roomState.currentSection}
+            visible={showChordPanel}
+            onToggle={() => setShowChordPanel(!showChordPanel)}
+          />
+        </>
       ) : (
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
