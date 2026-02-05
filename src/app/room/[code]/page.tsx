@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { RoomState, SongSection, SongLine } from "@/lib/types";
 import { ChordDiagram } from "@/components/ChordDiagram";
 import { transposeChord } from "@/lib/transpose";
@@ -22,9 +22,9 @@ function ChordLine({ line, transpose }: ChordLineProps) {
   }));
 
   return (
-    <div className="relative mb-6">
+    <div className="relative mb-2">
       {/* Chord row */}
-      <div className="relative h-8 font-mono text-lg">
+      <div className="relative h-[1.2em] font-mono text-[0.9em]">
         {chordPositions.map((c, idx) => (
           <span
             key={idx}
@@ -38,7 +38,7 @@ function ChordLine({ line, transpose }: ChordLineProps) {
         ))}
       </div>
       {/* Lyrics row */}
-      <div className="font-mono text-2xl text-white whitespace-pre">
+      <div className="font-mono text-[1em] text-white whitespace-pre">
         {line.lyrics}
       </div>
     </div>
@@ -141,8 +141,6 @@ export default function RoomDisplayPage({
   const [error, setError] = useState<string | null>(null);
   const [showCode, setShowCode] = useState(true);
   const [showChordPanel, setShowChordPanel] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const autoScrollRef = useRef<number | null>(null);
 
   // Get the current song from the library
   const currentSong = roomState?.currentSong ? getSong(roomState.currentSong) : null;
@@ -193,68 +191,6 @@ export default function RoomDisplayPage({
     };
   }, [roomCode]);
 
-  // Auto-scroll functionality
-  const performAutoScroll = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container || !roomState?.autoScroll) return;
-
-    // Calculate scroll speed based on autoScrollSpeed (1=slow, 2=medium, 3=fast)
-    // Pixels per frame at 60fps: slow=0.5, medium=1.5, fast=3
-    const speedMultiplier = roomState.autoScrollSpeed === 1 ? 0.5
-      : roomState.autoScrollSpeed === 2 ? 1.5
-      : 3;
-
-    const maxScroll = container.scrollHeight - container.clientHeight;
-    const currentScroll = container.scrollTop;
-
-    // Stop at end of song
-    if (currentScroll >= maxScroll) {
-      return;
-    }
-
-    // Scroll smoothly
-    container.scrollTop = Math.min(currentScroll + speedMultiplier, maxScroll);
-  }, [roomState]);
-
-  // Auto-scroll effect
-  useEffect(() => {
-    if (!roomState?.autoScroll) {
-      // Clear any existing interval when auto-scroll is disabled
-      if (autoScrollRef.current !== null) {
-        cancelAnimationFrame(autoScrollRef.current);
-        autoScrollRef.current = null;
-      }
-      return;
-    }
-
-    // Use requestAnimationFrame for smooth scrolling
-    let lastTime = 0;
-    const animate = (time: number) => {
-      // Throttle to ~60fps
-      if (time - lastTime >= 16) {
-        performAutoScroll();
-        lastTime = time;
-      }
-      autoScrollRef.current = requestAnimationFrame(animate);
-    };
-
-    autoScrollRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (autoScrollRef.current !== null) {
-        cancelAnimationFrame(autoScrollRef.current);
-        autoScrollRef.current = null;
-      }
-    };
-  }, [roomState?.autoScroll, performAutoScroll]);
-
-  // Reset scroll position when song changes
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-    }
-  }, [roomState?.currentSong]);
-
   if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -282,41 +218,37 @@ export default function RoomDisplayPage({
         {roomCode}
       </div>
 
-      {/* Song display with scrollable container */}
+      {/* Song display - full song visible at once */}
       {currentSong && sections.length > 0 ? (
         <>
-          <div
-            ref={scrollContainerRef}
-            className="h-screen overflow-y-auto pb-[220px] scroll-smooth"
-          >
-            {/* Song title */}
-            <div className="p-8 pt-16 pb-4">
-              <h1 className="text-3xl font-bold text-white mb-1">{currentSong.title}</h1>
-              {currentSong.artist && (
-                <div className="text-white/50 text-lg">{currentSong.artist}</div>
-              )}
-              {currentSong.key && roomState.transpose !== 0 && (
-                <div className="text-amber-400/60 text-sm mt-2">
-                  Transposed {roomState.transpose > 0 ? "+" : ""}{roomState.transpose} semitones
-                </div>
-              )}
-            </div>
+          <div className="h-screen overflow-hidden flex flex-col pb-[220px]">
+            <div className="flex-1 flex flex-col p-8 pt-16" style={{ fontSize: 'clamp(0.5rem, 1.5vw, 2rem)' }}>
+              {/* Song title */}
+              <div className="pb-2">
+                <h1 className="text-[1.5em] font-bold text-white mb-1">{currentSong.title}</h1>
+                {currentSong.artist && (
+                  <div className="text-white/50 text-[0.9em]">{currentSong.artist}</div>
+                )}
+                {currentSong.key && roomState.transpose !== 0 && (
+                  <div className="text-amber-400/60 text-[0.7em] mt-1">
+                    Transposed {roomState.transpose > 0 ? "+" : ""}{roomState.transpose} semitones
+                  </div>
+                )}
+              </div>
 
-            {/* All sections displayed */}
-            {sections.map((section, sectionIdx) => (
-              <div key={sectionIdx} className="px-8 pb-8">
-                <div className="text-amber-500/60 text-sm uppercase tracking-wider mb-4">
-                  {section.name}
-                </div>
-                {section.lines.map((line, lineIdx) => (
-                  <ChordLine key={lineIdx} line={line} transpose={roomState.transpose} />
+              {/* All sections displayed */}
+              <div className="flex-1 flex flex-col justify-start gap-4">
+                {sections.map((section, sectionIdx) => (
+                  <div key={sectionIdx}>
+                    <div className="text-amber-500/60 text-[0.7em] uppercase tracking-wider mb-2">
+                      {section.name}
+                    </div>
+                    {section.lines.map((line, lineIdx) => (
+                      <ChordLine key={lineIdx} line={line} transpose={roomState.transpose} />
+                    ))}
+                  </div>
                 ))}
               </div>
-            ))}
-
-            {/* End of song indicator */}
-            <div className="text-center py-16 text-white/20">
-              — End —
             </div>
           </div>
 
