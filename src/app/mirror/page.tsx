@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { SongSection, SongLine, Song } from "@/lib/types";
 import { ChordDiagram } from "@/components/ChordDiagram";
 import { transposeChord } from "@/lib/transpose";
@@ -72,11 +72,16 @@ function ChordDiagramPanel({
 }) {
   const uniqueChords = extractAllUniqueChords(sections, transpose);
 
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggle();
+  };
+
   return (
     <>
       {/* Toggle button - always visible */}
       <button
-        onClick={onToggle}
+        onClick={handleToggleClick}
         className="fixed bottom-4 right-4 z-20 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-white/70 hover:text-white transition-colors text-sm"
       >
         {visible ? "Hide Chords" : "Show Chords"}
@@ -87,6 +92,7 @@ function ChordDiagramPanel({
         className={`fixed bottom-0 left-0 right-0 z-10 transition-transform duration-300 ${
           visible ? "translate-y-0" : "translate-y-full"
         }`}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-black/80 backdrop-blur-sm border-t border-white/10 h-[200px] flex items-center px-4">
           {uniqueChords.length > 0 ? (
@@ -150,14 +156,88 @@ function SongDisplay({
   );
 }
 
+// Overlay Controls component - slides up from bottom
+function OverlayControls({
+  visible,
+  onInteraction,
+}: {
+  visible: boolean;
+  onInteraction: () => void;
+}) {
+  return (
+    <div
+      className={`fixed bottom-0 left-0 right-0 z-30 transition-all duration-300 ease-out ${
+        visible
+          ? "translate-y-0 opacity-100"
+          : "translate-y-full opacity-0"
+      }`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onInteraction();
+      }}
+      onTouchStart={(e) => {
+        e.stopPropagation();
+        onInteraction();
+      }}
+    >
+      <div className="bg-black/80 backdrop-blur-md border-t border-white/10 p-6">
+        <div className="text-center text-white/50 text-sm">
+          Control panel - more controls coming in next update
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MirrorPage() {
   // Get all songs and default to first one
   const allSongs = getAllSongs();
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [transpose, setTranspose] = useState(0);
   const [showChordPanel, setShowChordPanel] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  // Timer ref for auto-hide
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentSong = allSongs[currentSongIndex];
+
+  // Function to reset the auto-hide timer
+  const resetHideTimer = useCallback(() => {
+    // Clear existing timer
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+    }
+    // Set new timer to hide after 3 seconds
+    hideTimerRef.current = setTimeout(() => {
+      setShowOverlay(false);
+    }, 3000);
+  }, []);
+
+  // Handle screen tap to show overlay
+  const handleScreenTap = useCallback(() => {
+    if (!showOverlay) {
+      setShowOverlay(true);
+      resetHideTimer();
+    } else {
+      // If already visible, reset the timer
+      resetHideTimer();
+    }
+  }, [showOverlay, resetHideTimer]);
+
+  // Handle any interaction with the overlay
+  const handleOverlayInteraction = useCallback(() => {
+    resetHideTimer();
+  }, [resetHideTimer]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, []);
 
   // If no songs available, show message
   if (!currentSong) {
@@ -169,7 +249,10 @@ export default function MirrorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative">
+    <div
+      className="min-h-screen bg-black relative cursor-pointer"
+      onClick={handleScreenTap}
+    >
       {/* Song display */}
       <SongDisplay song={currentSong} transpose={transpose} />
 
@@ -179,6 +262,12 @@ export default function MirrorPage() {
         transpose={transpose}
         visible={showChordPanel}
         onToggle={() => setShowChordPanel(!showChordPanel)}
+      />
+
+      {/* Overlay controls - slides up on tap */}
+      <OverlayControls
+        visible={showOverlay}
+        onInteraction={handleOverlayInteraction}
       />
     </div>
   );
