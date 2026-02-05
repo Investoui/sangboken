@@ -199,10 +199,10 @@ function SongDisplay({
           )}
         </div>
 
-        {/* All sections displayed - use columns in landscape for better space use */}
-        <div className={`flex-1 overflow-auto ${isLandscape ? 'columns-2 gap-8' : 'flex flex-col justify-start gap-4'}`}>
+        {/* All sections displayed - scrollable single column */}
+        <div className="flex-1 overflow-auto flex flex-col justify-start gap-4">
           {sections.map((section, sectionIdx) => (
-            <div key={sectionIdx} className={isLandscape ? 'break-inside-avoid mb-4' : ''}>
+            <div key={sectionIdx}>
               <div className="text-amber-500/60 text-[0.7em] uppercase tracking-wider mb-2">
                 {section.name}
               </div>
