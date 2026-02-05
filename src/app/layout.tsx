@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { InstallBanner } from "@/components/InstallBanner";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -94,6 +95,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-[var(--bg-base)] text-[var(--text-primary)] min-h-screen no-overscroll">
         {children}
+        <InstallBanner />
       </body>
     </html>
   );
