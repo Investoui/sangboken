@@ -421,14 +421,17 @@ export default function MirrorPage() {
     }, 3000);
   }, []);
 
-  // Handle screen tap to show overlay
+  // Handle screen tap to toggle overlay
   const handleScreenTap = useCallback(() => {
     if (!showOverlay) {
       setShowOverlay(true);
       resetHideTimer();
     } else {
-      // If already visible, reset the timer
-      resetHideTimer();
+      // If already visible, hide immediately
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+      setShowOverlay(false);
     }
   }, [showOverlay, resetHideTimer]);
 
