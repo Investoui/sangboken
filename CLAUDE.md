@@ -1,5 +1,10 @@
 # Sangboken - Project Instructions
 
+## IMPORTANT: First Steps
+1. **Read `settings.md`** if it exists — contains user preferences for coding style, explanations, and logging
+2. Log your work in `CHANGELOG.md` after completing tasks
+3. Explain technical decisions as if teaching someone learning
+
 ## Overview
 Digital songbook app with guitar chords. Works on mobile, tablet, and TV (via AirPlay/Chromecast).
 Norwegian-focused. Currently has children's songs, expanding to include allsang and viser.
