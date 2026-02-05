@@ -17,29 +17,6 @@ export default function HomePage() {
           </p>
         </header>
 
-        {/* Quick actions */}
-        <div className="flex justify-center gap-4 mb-8">
-          <Link
-            href="/mirror"
-            className="px-6 py-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-xl transition-colors flex items-center gap-2"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-            Vis på TV
-          </Link>
-        </div>
-
         {/* Song list */}
         <div className="space-y-2">
           <h2 className="text-white/40 text-xs uppercase tracking-wider mb-4 px-2">
@@ -63,7 +40,9 @@ export default function HomePage() {
                     )}
                   </h3>
                   {song.artist && (
-                    <p className="text-white/50 text-sm truncate">{song.artist}</p>
+                    <p className="text-white/50 text-sm truncate">
+                      {song.artist}
+                    </p>
                   )}
                 </div>
                 {song.key && (
@@ -77,10 +56,24 @@ export default function HomePage() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-12 pt-8 border-t border-white/10 text-center">
-          <p className="text-white/30 text-sm">
-            Gratis sangbok for gitarspillere
-          </p>
+        <footer className="mt-12 pt-8 border-t border-white/10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
+            <p className="text-white/30">Gratis sangbok for gitarspillere</p>
+            <nav className="flex gap-6">
+              <Link
+                href="/om-oss"
+                className="text-white/50 hover:text-white transition-colors"
+              >
+                Om oss
+              </Link>
+              <Link
+                href="/hvordan-bruke"
+                className="text-white/50 hover:text-white transition-colors"
+              >
+                Slik bruker du Sangboken
+              </Link>
+            </nav>
+          </div>
         </footer>
       </div>
     </div>
