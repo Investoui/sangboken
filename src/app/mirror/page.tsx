@@ -64,25 +64,32 @@ function ChordDiagramPanel({
   transpose,
   visible,
   isLandscape,
+  onHide,
 }: {
   sections: SongSection[];
   transpose: number;
   visible: boolean;
   isLandscape: boolean;
+  onHide: () => void;
 }) {
   const uniqueChords = extractAllUniqueChords(sections, transpose);
 
   if (!visible) return null;
 
-  // Landscape: right side panel
+  // Landscape: right side panel - tap to hide
   if (isLandscape) {
     return (
       <div
-        className="h-full w-full bg-black/40 backdrop-blur-sm border-l border-white/10 flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+        className="h-full w-full bg-black/40 backdrop-blur-sm border-l border-white/10 flex flex-col cursor-pointer"
+        onClick={(e) => {
+          e.stopPropagation();
+          onHide();
+        }}
+        title="Tap to hide"
       >
-        <div className="text-white/40 text-xs uppercase tracking-wider px-3 py-2 border-b border-white/10">
-          Chords
+        <div className="text-white/40 text-xs uppercase tracking-wider px-3 py-2 border-b border-white/10 flex justify-between items-center">
+          <span>Chords</span>
+          <span className="text-white/20">tap to hide</span>
         </div>
         {uniqueChords.length > 0 ? (
           <div className="flex-1 overflow-y-auto p-2">
@@ -151,6 +158,11 @@ function TabDisplay({ song }: { song: Song }) {
   );
 }
 
+// Helper to count total lines in a song
+function countSongLines(sections: SongSection[]): number {
+  return sections.reduce((total, section) => total + section.lines.length, 0);
+}
+
 // Song Display component
 function SongDisplay({
   song,
@@ -167,6 +179,10 @@ function SongDisplay({
   }
 
   const sections = song.sections;
+  
+  // Determine if song is "long" - more than 10 lines means vertical scroll
+  const totalLines = countSongLines(sections);
+  const isLongSong = totalLines > 10;
 
   // Landscape: use more horizontal space, no bottom padding needed
   // Portrait: keep bottom padding for chord panel
@@ -182,6 +198,16 @@ function SongDisplay({
   const fontSize = isLandscape
     ? 'clamp(0.7rem, 2vw, 1.5rem)'
     : 'clamp(0.5rem, 1.5vw, 2rem)';
+
+  // For short songs in landscape: use horizontal columns layout
+  // For long songs: use vertical scrolling
+  const sectionsLayoutClass = isLandscape && !isLongSong
+    ? "flex-1 overflow-auto columns-2 gap-8"
+    : "flex-1 overflow-auto flex flex-col justify-start gap-4";
+
+  const sectionItemClass = isLandscape && !isLongSong
+    ? "break-inside-avoid mb-4"
+    : "";
 
   return (
     <div className={containerClass}>
@@ -199,10 +225,10 @@ function SongDisplay({
           )}
         </div>
 
-        {/* All sections displayed - scrollable single column */}
-        <div className="flex-1 overflow-auto flex flex-col justify-start gap-4">
+        {/* All sections displayed - adaptive layout based on song length */}
+        <div className={sectionsLayoutClass}>
           {sections.map((section, sectionIdx) => (
-            <div key={sectionIdx}>
+            <div key={sectionIdx} className={sectionItemClass}>
               <div className="text-amber-500/60 text-[0.7em] uppercase tracking-wider mb-2">
                 {section.name}
               </div>
@@ -631,7 +657,7 @@ export default function MirrorPage() {
       {isLandscape ? (
         <div className="h-full flex">
           {/* Song display - takes most of the width */}
-          <div className={`flex-1 h-full overflow-hidden ${showChordPanel && currentSong.format !== "tab" ? '' : ''}`}>
+          <div className="flex-1 h-full overflow-hidden">
             <SongDisplay song={currentSong} transpose={transpose} isLandscape={true} />
           </div>
 
@@ -643,8 +669,23 @@ export default function MirrorPage() {
                 transpose={transpose}
                 visible={showChordPanel}
                 isLandscape={true}
+                onHide={() => setShowChordPanel(false)}
               />
             </div>
+          )}
+
+          {/* Show chords button when panel is hidden */}
+          {currentSong.format !== "tab" && !showChordPanel && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowChordPanel(true);
+              }}
+              className="fixed right-0 top-1/2 -translate-y-1/2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 px-2 py-4 rounded-l-lg border border-r-0 border-amber-500/30 transition-colors"
+              style={{ writingMode: 'vertical-rl' }}
+            >
+              Show Chords
+            </button>
           )}
         </div>
       ) : (
@@ -659,6 +700,7 @@ export default function MirrorPage() {
               transpose={transpose}
               visible={showChordPanel}
               isLandscape={false}
+              onHide={() => setShowChordPanel(false)}
             />
           )}
         </>
