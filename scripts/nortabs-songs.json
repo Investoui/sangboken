@@ -1,0 +1,20 @@
+{
+  "songs": [
+    {"name": "Bjørnen sover!", "bestTab": 2229, "stars": 5, "type": "Tab"},
+    {"name": "Blinke blinke stjernelill", "bestTab": 2906, "stars": 6, "type": "Tab"},
+    {"name": "Bæ bæ lille lam", "bestTab": 2542, "stars": 4, "type": "Grep"},
+    {"name": "Blåmann blåmann bukken min", "bestTab": 2817, "stars": 5, "type": "Grep"},
+    {"name": "Buggi-buggi", "bestTab": 2818, "stars": 3, "type": "Grep"},
+    {"name": "Alle fugler små de er", "bestTab": 5307, "stars": 1, "type": "Grep"},
+    {"name": "Bake kake søte", "bestTab": 3636, "stars": 0, "type": "Grep"},
+    {"name": "Bukkene Bruse", "bestTab": 3174, "stars": 0, "type": "Grep"},
+    {"name": "Byggmester Bob", "bestTab": 3632, "stars": 1, "type": "Grep"},
+    {"name": "Byssan lull", "bestTab": 2819, "stars": 1, "type": "Grep"},
+    {"name": "Da klokka klang", "bestTab": 2621, "stars": 2, "type": "Grep"},
+    {"name": "Bro bro brille", "bestTab": 7666, "stars": 0, "type": "Grep"},
+    {"name": "Du og jeg og dompapen", "bestTab": 2407, "stars": 0, "type": "Grep"},
+    {"name": "Eg veit ei lita jente", "bestTab": 3648, "stars": 0, "type": "Grep"},
+    {"name": "En bussjåfør", "bestTab": 2624, "stars": 3, "type": "Grep"},
+    {"name": "Brannmann Sam", "bestTab": 2737, "stars": 1, "type": "Grep"}
+  ]
+}
