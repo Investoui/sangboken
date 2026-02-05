@@ -143,7 +143,7 @@ function ChordDiagramPanel({
 function TabDisplay({ song }: { song: Song }) {
   return (
     <div className="h-screen overflow-auto pb-[220px]">
-      <div className="p-8 pt-8 pl-[max(2rem,env(safe-area-inset-left))] pr-[max(2rem,env(safe-area-inset-right))]">
+      <div className="p-8 pt-[max(2rem,env(safe-area-inset-top))] pl-[max(2rem,env(safe-area-inset-left))] pr-[max(2rem,env(safe-area-inset-right))]">
         <div className="pb-4">
           <div className="flex items-center gap-3 mb-1">
             <Link
@@ -208,7 +208,7 @@ function SongDisplay({
 
   const contentClass = isLandscape
     ? "h-full flex flex-col p-4 pt-4 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]"
-    : "flex-1 flex flex-col p-8 pt-8";
+    : "flex-1 flex flex-col p-8 pt-[max(2rem,env(safe-area-inset-top))]";
 
   const baseFontSize = isLandscape
     ? "clamp(0.7rem, 2vw, 1.5rem)"
