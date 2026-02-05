@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run build:songs && next build",
+    "build:songs": "npx tsx scripts/build-songs.ts",
     "start": "next start",
     "lint": "eslint"
   },
