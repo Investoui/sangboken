@@ -13,8 +13,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Guitar Chords - Cast & Control",
-  description: "Display guitar chords on your TV and control from your phone",
+  title: {
+    default: "Sangboken - Norske barnesanger med akkorder",
+    template: "%s | Sangboken",
+  },
+  description:
+    "Gratis sangbok med gitarakkorder for norske barnesanger. Vis på TV, spill fra mobilen.",
+  keywords: ["sangbok", "akkorder", "gitarakkorder", "barnesanger", "norske sanger"],
+  authors: [{ name: "Sangboken" }],
+  openGraph: {
+    type: "website",
+    locale: "nb_NO",
+    siteName: "Sangboken",
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="no" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white min-h-screen`}
       >
