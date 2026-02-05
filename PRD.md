@@ -14,34 +14,53 @@ No native app needed. No App Store. Just web.
 
 ## User Flow
 
-### Setup (One-time)
-1. Open `guitar-chords.app` on your laptop
-2. Cast tab to TV (Chrome → Cast, AirPlay, or smart TV browser)
+### Two Modes
+
+The app supports two modes to fit different setups:
+
+#### Mode 1: Mirror Mode (Recommended for iPhone + AirPlay)
+Best for: iPhone → AirPlay → TV (no extra devices needed)
+
+1. Open app on iPhone in landscape
+2. AirPlay mirror to TV
+3. Select song → full screen display
+4. Tap screen → controls appear (auto-hide after 3s)
+5. Enable Do Not Disturb to avoid notifications on TV
+
+**Why this works:** Single screen optimized for mirroring. Phone shows same as TV, but you're looking at the TV anyway. Controls only briefly visible when interacting.
+
+#### Mode 2: Room Mode (Separate Controller)
+Best for: TV with browser, or laptop cast to TV
+
+1. Open `guitar-chords.app` on TV/laptop browser
+2. Cast tab to TV if using laptop
 3. App shows a **room code** (e.g., `ROCK-42`)
+4. Open `guitar-chords.app/join` on phone
+5. Enter room code → phone becomes remote
+6. Phone shows controls, TV shows display only
 
-### Connect Phone
-1. Open `guitar-chords.app/join` on phone
-2. Enter room code
-3. Phone becomes the remote
-
-### Play
-1. Phone shows song list, controls
-2. Select song → TV shows chords fullscreen
-3. Tap "next section" → TV advances
-4. Swipe → scroll through song
-5. Adjust tempo, transpose, etc.
+### Home Screen
+User picks their mode:
+- **"Mirror Mode"** → Single-screen experience for AirPlay
+- **"Room Mode"** → Separate display + controller
 
 ## Features
 
 ### Phase 1: MVP
-- [ ] Display view with lyrics + chords positioned at correct syllables
-- [ ] **Chord diagram panel** — shows fingering with finger numbers (1-4)
-- [ ] Toggle: show/hide chord diagrams
-- [ ] Controller view with basic controls (next/prev section, scroll)
-- [ ] WebSocket room system with 4-character codes
-- [ ] Song import (ChordPro format or plain text)
-- [ ] Basic song library (localStorage)
-- [ ] Built-in chord library (common chords with fingerings)
+- [x] Display view with lyrics + chords positioned at correct syllables
+- [x] **Chord diagram panel** — shows fingering with finger numbers (1-4)
+- [x] Toggle: show/hide chord diagrams
+- [x] Controller view with basic controls (next/prev section, scroll)
+- [x] SSE room system with 4-character codes (Room Mode)
+- [x] Song import (ChordPro format)
+- [x] Basic song library (localStorage)
+- [x] Built-in chord library (common chords with fingerings)
+- [ ] **Mirror Mode** — Single-screen for AirPlay/screen mirroring:
+  - [ ] Landscape-optimized full-screen display
+  - [ ] Tap to show controls overlay, auto-hide after 3 seconds
+  - [ ] Song picker integrated into overlay
+  - [ ] Large touch targets for guitar-in-hand use
+  - [ ] Home screen with mode selection (Mirror vs Room)
 - [ ] Auto-scroll with adjustable speed
 - [ ] Transpose (+/- semitones) — updates chord names + diagrams
 
@@ -224,17 +243,30 @@ interface RoomState {
 
 ## UI/UX Notes
 
-### Display View (TV)
+### Display View (TV / Mirror Mode)
 - Pure black background (#000) for OLED
 - **Chord names:** 48-64px, accent color (e.g., amber), bold, positioned above exact syllable
 - **Lyrics:** 36-48px, white, good letter-spacing for readability
 - **Current line highlighted** — subtle background or brighter text
 - **Chord diagram panel** (when enabled):
-  - Bottom bar showing current chord + next chord
+  - Bottom bar showing all unique chords in the song
   - Finger numbers clearly visible (1-4)
   - ~200px height, semi-transparent background
-- Room code: small, top-right corner, fades after 10s
+- Room code: small, top-right corner, fades after 10s (Room Mode only)
 - No chrome, no distractions
+
+### Mirror Mode Overlay Controls
+- **Trigger:** Tap anywhere on screen
+- **Auto-hide:** 3 seconds after last interaction
+- **Layout:** Semi-transparent overlay from bottom
+- **Controls:**
+  - Song picker (dropdown or slide-up list)
+  - Previous/Next song buttons
+  - Transpose +/- buttons
+  - Toggle chord diagrams on/off
+  - Settings gear (future: auto-scroll, themes)
+- **Touch targets:** Minimum 60px height (guitar-in-hand use)
+- **Animation:** Smooth slide-in/fade-out transitions
 
 ### Controller View (Phone)
 - Bottom navigation: Songs | Controls | Settings

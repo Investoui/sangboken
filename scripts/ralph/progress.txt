@@ -1,0 +1,353 @@
+## Codebase Patterns
+- Use pure black (#000) background for OLED displays
+- Dark theme is set via `class="dark"` on html element
+- Tailwind CSS 4 uses `@import "tailwindcss"` syntax
+- TypeScript strict mode is enabled
+- Path alias `@/*` maps to `./src/*`
+- Room store is in-memory with automatic TTL cleanup (30 min)
+- Next.js 16 params are Promise-based (need `await params`)
+- SSE: Use subscribeToRoom(code, callback) for real-time updates; updateRoom() auto-notifies subscribers
+- Commands: Use RoomCommand type from @/lib/types.ts; POST to /api/room/[code]/command
+- Display: Chords positioned using `left: Nch` (ch = character width in monospace); use `font-mono` for alignment
+- ESLint: Avoid calling setState directly within useEffect body; use cleanup function for timeouts
+- ChordDiagram: Import from @/components/ChordDiagram; use getChord() from @/lib/chord-library for data
+- Components: Store reusable components in src/components/ directory
+- Controller: Use useCallback for sendCommand; POST to /api/room/[code]/command with RoomCommand body
+- Songs: Import Song type from @/lib/types; use getSong(id) or getAllSongs() from @/lib/songs
+- ChordPro: Use parseChordPro(text, id) from @/lib/chordpro-parser for parsing [Chord]lyrics format
+- Transpose: Use transposeChord(chord, semitones) from @/lib/transpose; handles sharps/flats, semitone wrapping
+- Animation: Use requestAnimationFrame for smooth 60fps animations; use useRef for frame IDs
+- React Compiler: Use full objects in useCallback deps (e.g., `roomState` not `roomState?.property`)
+
+---
+
+## 2026-02-05 - US-001
+- What was implemented:
+  - Renamed branch from master to main
+  - Updated layout.tsx with dark theme defaults (class="dark" on html)
+  - Set app metadata (title: "Guitar Chords - Cast & Control")
+  - Updated globals.css with pure black (#000) background
+  - Simplified page.tsx with basic landing content
+- Files changed:
+  - src/app/layout.tsx
+  - src/app/globals.css
+  - src/app/page.tsx
+- **Learnings for future iterations:**
+  - Next.js 15 project was already initialized via create-next-app
+  - Tailwind CSS 4 uses new @import syntax instead of @tailwind directives
+  - Dark mode is applied via class="dark" on html element, not media query
+  - TypeScript typecheck runs with `npx tsc --noEmit`
+  - Lint runs with `npm run lint`
+---
+
+## 2026-02-05 - US-002
+- What was implemented:
+  - RoomState type with all required fields (code, currentSong, currentSection, scrollPosition, transpose, controllers[], autoScroll, autoScrollSpeed)
+  - In-memory room store with Map and 30-minute TTL for inactive rooms
+  - POST /api/room endpoint to create new rooms with 4-char uppercase codes
+  - GET /api/room/[code] endpoint to retrieve room state or 404
+- Files changed:
+  - src/lib/types.ts (new)
+  - src/lib/room-store.ts (new)
+  - src/app/api/room/route.ts (new)
+  - src/app/api/room/[code]/route.ts (new)
+- **Learnings for future iterations:**
+  - Next.js 16 dynamic route params are now Promise-based (await params to get values)
+  - Room codes are generated as 4-char uppercase letters (A-Z only)
+  - Room store exports: createRoom, getRoom, updateRoom, deleteRoom
+  - All room operations automatically clean up expired rooms
+---
+
+## 2026-02-05 - US-003
+- What was implemented:
+  - GET /api/room/[code]/stream endpoint returning SSE connection
+  - Sends 'state' event with full room state on initial connection
+  - Sends 'update' event when room state changes via subscribeToRoom mechanism
+  - Client disconnect handled via ReadableStream cancel() callback
+  - Keepalive pings sent every 15 seconds using SSE comment format (`: keepalive`)
+  - Added subscriber pattern to room-store.ts for SSE notification
+- Files changed:
+  - src/lib/room-store.ts (added subscribeToRoom, notifySubscribers, updated updateRoom)
+  - src/app/api/room/[code]/stream/route.ts (new)
+- **Learnings for future iterations:**
+  - SSE in Next.js uses ReadableStream with TextEncoder
+  - SSE format: `event: <name>\ndata: <json>\n\n` for events, `: comment\n\n` for keepalive
+  - Room store now exports subscribeToRoom(code, callback) which returns unsubscribe function
+  - updateRoom() automatically notifies all SSE subscribers
+---
+
+## 2026-02-05 - US-004
+- What was implemented:
+  - POST /api/room/[code]/command endpoint accepting JSON body
+  - RoomCommand type with discriminated union for all command types
+  - Command handlers: setSong, nextSection, prevSection, scroll, transpose, setAutoScroll
+  - setSong resets currentSection and scrollPosition to 0
+  - prevSection prevents going below 0
+  - setAutoScroll supports optional speed parameter
+  - Returns 404 if room not found, 400 for invalid commands
+- Files changed:
+  - src/lib/types.ts (added RoomCommand type)
+  - src/app/api/room/[code]/command/route.ts (new)
+- **Learnings for future iterations:**
+  - RoomCommand is a discriminated union type - use command.type to switch
+  - updateRoom() in room-store automatically notifies SSE subscribers
+  - Follow pattern of existing routes: async params, getRoom check, NextResponse.json
+---
+
+## 2026-02-05 - US-005
+- What was implemented:
+  - Created /room/[code] page that connects to SSE stream using EventSource API
+  - Room code displayed in top-right corner with 10-second fade animation
+  - ChordLine component renders lyrics with chord names positioned above correct syllables
+  - Chords use amber-400 color, lyrics in white, pure black background
+  - Waiting state when no song is selected
+  - Demo song structure for showcasing chord rendering (will be replaced with real songs in US-009)
+- Files changed:
+  - src/app/room/[code]/page.tsx (new)
+- **Learnings for future iterations:**
+  - Use `ch` CSS unit for positioning chords in monospace font (1ch = width of one character)
+  - EventSource API for SSE: listen to named events with addEventListener("eventName", callback)
+  - ESLint rule `react-hooks/set-state-in-effect` prohibits calling setState directly in effect body
+  - For fade animations, just start timer in effect rather than resetting state to true
+  - Song/chord types defined locally for now; will be moved to lib/types.ts in US-009
+---
+
+## 2026-02-05 - US-006
+- What was implemented:
+  - ChordDiagram component with SVG-based 6-string fretboard grid
+  - Finger position dots with numbered labels (1-4 for index, middle, ring, pinky)
+  - Open string indicators (○) and muted string indicators (×)
+  - Support for barre chords with visual barre indicator
+  - Size variants (sm, md, lg) for different display contexts
+  - Chord library with 10 common chords: C, D, E, G, A, Am, Em, Dm, F, Bm
+  - Each chord includes fret positions, finger numbers, and base fret for position
+- Files changed:
+  - src/lib/chord-library.ts (new) - chord data definitions and lookup functions
+  - src/components/ChordDiagram.tsx (new) - SVG chord diagram React component
+- **Learnings for future iterations:**
+  - ChordFingering type: frets array (6 elements for 6 strings), fingers array, baseFret, optional barre
+  - Use getChord(name) from chord-library.ts to look up chord fingerings
+  - ChordDiagram accepts chordName prop and optional size ("sm" | "md" | "lg")
+  - Components go in src/components/ directory
+  - SVG is used for rendering the fretboard for crisp scaling
+---
+
+## 2026-02-05 - US-007
+- What was implemented:
+  - ChordDiagramPanel component with current chord + next chord diagrams
+  - Bottom panel fixed at 200px height with semi-transparent background (bg-black/80 backdrop-blur-sm)
+  - Toggle button in bottom-right corner to show/hide panel
+  - Diagrams update based on currentSection - extracts unique chords from section
+  - Panel slides in/out with CSS transition (translate-y)
+  - "Current" label in amber color, "Next" label with reduced opacity
+- Files changed:
+  - src/app/room/[code]/page.tsx (added ChordDiagramPanel, extractChordsFromSection, showChordPanel state)
+- **Learnings for future iterations:**
+  - Use fixed positioning with translate-y for slide-in/out panels
+  - Extract unique chords while preserving order of first appearance
+  - Panel z-index should be lower than toggle button z-index for proper layering
+  - Use backdrop-blur-sm for modern glass-like effect
+---
+
+## 2026-02-05 - US-008
+- What was implemented:
+  - /join page with room code input form (4-character uppercase)
+  - Room validation via GET /api/room/[code] before redirect
+  - /control/[code] page with controller interface
+  - Prev/Next section buttons sending commands via POST
+  - Scroll slider (0-100%) with range input
+  - SSE connection for real-time room state updates
+  - Mobile-first responsive design with full-width controls
+- Files changed:
+  - src/app/join/page.tsx (new)
+  - src/app/control/[code]/page.tsx (new)
+- **Learnings for future iterations:**
+  - Controller pattern: useCallback for sendCommand to avoid recreation on each render
+  - Input type="range" with accent-amber-400 for consistent theme styling
+  - Mobile-first: max-w-sm for forms, full-width buttons, adequate py-4 padding for touch
+  - Room code input: use toUpperCase() on both value and onChange for consistent UX
+  - Display room info (transpose, auto-scroll) at bottom for reference
+---
+
+## 2026-02-05 - US-009
+- What was implemented:
+  - Song TypeScript interface with id, title, artist, key, sections
+  - SongSection, SongLine, ChordPosition types in src/lib/types.ts
+  - ChordPro parser utility supporting [Chord]lyrics format
+  - Parser supports directives: {title:}, {artist:}, {key:}, {verse:}, {chorus:}, etc.
+  - 3 sample Norwegian children's songs:
+    - Kua mi (key: G)
+    - Bæ bæ lille lam (key: C)
+    - Lille Petter Edderkopp (key: D)
+  - Songs stored in src/lib/songs.ts with getSong(id) and getAllSongs() helpers
+- Files changed:
+  - src/lib/types.ts (added Song, SongSection, SongLine, ChordPosition types)
+  - src/lib/chordpro-parser.ts (new)
+  - src/lib/songs.ts (new)
+- **Learnings for future iterations:**
+  - Song type has: id, title, artist?, key?, sections[]
+  - Use parseChordPro(text, id) to convert ChordPro format to Song object
+  - Songs accessed via getSong(id) or getAllSongs() from @/lib/songs
+  - ChordPro format: [Chord] inline with lyrics, {directive: value} for metadata
+  - Norwegian characters (æ, ø, å) work fine in TypeScript string literals
+---
+
+## 2026-02-05 - US-010
+- What was implemented:
+  - Song list displayed on controller page with title, artist, and key info
+  - Each song is a tappable button that sends setSong command
+  - Current song highlighted with amber background/border and amber text
+  - "Now Playing" section updated to show song title instead of just ID
+- Files changed:
+  - src/app/control/[code]/page.tsx (added song selection UI, imported getAllSongs)
+- **Learnings for future iterations:**
+  - Static songs from @/lib/songs can be imported directly in client components
+  - Highlight current selection with amber-400/20 bg + amber-400/50 border for consistency
+  - Use getAllSongs() from @/lib/songs to iterate over all available songs
+  - Song ID stored in roomState.currentSong matches song.id from the library
+---
+
+## 2026-02-05 - US-011
+- What was implemented:
+  - Transpose +/- buttons on controller with large touch targets
+  - Transpose value displayed prominently (-6 to +6 semitones)
+  - transposeChord() utility function in src/lib/transpose.ts
+  - Display view updates chord names based on transpose value from room state
+  - Chord diagrams automatically show transposed chords
+  - Buttons disabled at limits (-6/+6) to prevent over-transposing
+- Files changed:
+  - src/lib/transpose.ts (new) - chord transposition utility with semitone-based logic
+  - src/app/control/[code]/page.tsx (added transpose control buttons with value display)
+  - src/app/room/[code]/page.tsx (updated ChordLine, SongDisplay, ChordDiagramPanel to accept transpose prop)
+- **Learnings for future iterations:**
+  - Use transposeChord(chord, semitones) from @/lib/transpose for chord transposition
+  - Music uses 12 semitones per octave; use modulo 12 for wrapping
+  - Flats (Db, Bb, etc.) are converted to sharps for consistency
+  - The transpose value is stored in roomState.transpose and sent via RoomCommand { type: "transpose", value: N }
+  - Pass transpose value through component hierarchy to all chord-rendering components
+---
+
+## 2026-02-05 - US-012
+- What was implemented:
+  - Auto-scroll toggle button on controller (Start/Stop Scrolling)
+  - Speed selector with 3 options: Slow, Medium, Fast
+  - Smooth scrolling on display using requestAnimationFrame for 60fps animation
+  - Scrolling automatically stops when reaching end of song
+  - Updated display view to show actual songs from library instead of demo song
+  - Scroll position resets when song changes
+- Files changed:
+  - src/app/control/[code]/page.tsx (added auto-scroll toggle and speed controls)
+  - src/app/room/[code]/page.tsx (implemented auto-scroll using refs and requestAnimationFrame)
+- **Learnings for future iterations:**
+  - Use requestAnimationFrame for smooth animations instead of setInterval/setTimeout
+  - React Compiler prefers full object in useCallback dependencies (e.g., `roomState` instead of `roomState?.autoScroll`)
+  - Use useRef for animation frame IDs to properly cleanup on unmount
+  - Auto-scroll speed values: 1=slow (0.5px/frame), 2=medium (1.5px/frame), 3=fast (3px/frame)
+  - Display now uses getSong() from @/lib/songs to fetch actual song data
+  - Scroll container needs `pb-[220px]` padding to account for chord diagram panel
+---
+
+## 2026-02-05 - US-013
+- What was implemented:
+  - Landing page with "Create Room" button that calls POST /api/room
+  - After room creation, redirects to /room/[code]
+  - Instructions: "Open this URL on your TV, then join from your phone"
+  - QR code displaying the /join URL for easy phone access
+  - Uses qrcode.react library (QRCodeSVG component)
+  - Responsive design with max-w-md container
+- Files changed:
+  - src/app/page.tsx (converted to client component with room creation logic)
+  - package.json (added qrcode.react dependency)
+  - package-lock.json (updated)
+- **Learnings for future iterations:**
+  - Use QRCodeSVG from qrcode.react for generating QR codes
+  - Use window.location.origin for dynamic base URL in QR codes
+  - Remember to handle SSR: check `typeof window !== "undefined"` before using window
+  - Landing page pattern: button -> fetch POST -> redirect on success
+---
+
+## 2026-02-05 21:30 - US-014: Home page mode selection
+**Started:** 2026-02-05 21:25
+**Completed:** 2026-02-05 21:30
+
+- What was implemented:
+  - Updated / page to show two mode options: Mirror Mode and Room Mode
+  - Mirror Mode links to /mirror (single screen with tap-to-control overlay)
+  - Room Mode triggers existing room creation flow (display on TV, control from phone)
+  - Each option has an icon, title, and brief description
+  - Clean card-based design with large touch targets (p-6 padding, 14x14 icons)
+  - Removed QR code (will be in Room Mode flow instead)
+- Files changed:
+  - src/app/page.tsx (updated with two mode options)
+- **Learnings for future iterations:**
+  - Use Link component from next/link for client-side navigation
+  - Card-based UI with flex layout works well for mode selection
+  - SVG icons inline in JSX with stroke-based design for consistent sizing
+  - Touch targets should be at least 60px for mobile use (achieved via p-6 padding)
+---
+
+## 2026-02-05 21:45 - US-015: Mirror Mode - basic display
+**Started:** 2026-02-05 21:40
+**Completed:** 2026-02-05 21:45
+
+- What was implemented:
+  - New /mirror route page for single-screen AirPlay mirroring experience
+  - Full-screen landscape-optimized song display
+  - Reused ChordLine, extractAllUniqueChords, and ChordDiagramPanel patterns from room display
+  - Black background with responsive text scaling (clamp-based font sizing)
+  - Shows first song from library by default using getAllSongs()[0]
+  - Chord diagram panel at bottom showing all unique chords from the entire song
+  - Local state management (no SSE needed for mirror mode)
+- Files changed:
+  - src/app/mirror/page.tsx (new)
+- **Learnings for future iterations:**
+  - Mirror mode uses local state instead of SSE - simpler architecture for single-device use
+  - The SongDisplay, ChordLine, extractAllUniqueChords, and ChordDiagramPanel patterns can be extracted into shared components in the future if needed
+  - State setters (setCurrentSongIndex, setTranspose) are declared for future overlay controls in US-016/US-017
+  - Page structure follows room display but without SSE connection or room code display
+---
+
+## 2026-02-05 22:00 - US-016: Mirror Mode - overlay controls
+**Started:** 2026-02-05 21:55
+**Completed:** 2026-02-05 22:00
+
+- What was implemented:
+  - Tap anywhere on screen shows overlay controls (OverlayControls component)
+  - Overlay auto-hides after 3 seconds of no interaction using useRef timer
+  - Semi-transparent overlay (bg-black/80 backdrop-blur-md) slides up from bottom
+  - Smooth slide-in (translate-y-0) and fade-out (opacity + translate-y-full) animations
+  - Any interaction with overlay resets the 3-second timer via onInteraction callback
+  - Stop propagation on chord panel and overlay to prevent conflicting tap events
+- Files changed:
+  - src/app/mirror/page.tsx (added OverlayControls component, showOverlay state, hideTimerRef, resetHideTimer, handleScreenTap, handleOverlayInteraction)
+- **Learnings for future iterations:**
+  - Use useRef for timer IDs to avoid stale closure issues and allow proper cleanup
+  - Combine translate-y and opacity transitions for smooth slide-in/fade-out effect
+  - Stop propagation (e.stopPropagation()) on nested clickable elements to prevent parent tap handlers from firing
+  - Use onTouchStart in addition to onClick for immediate mobile responsiveness
+  - Timer pattern: useCallback for resetHideTimer, call it on show and on any interaction
+---
+
+## 2026-02-05 22:30 - US-017: Mirror Mode - control panel contents
+**Started:** 2026-02-05 22:20
+**Completed:** 2026-02-05 22:30
+
+- What was implemented:
+  - Full control panel in OverlayControls component
+  - Song picker: scrollable list with current song highlighted in amber
+  - Previous/Next song buttons with chevron icons
+  - Transpose +/- buttons with current value display (−6 to +6)
+  - Toggle chord diagrams on/off button with active state styling
+  - All touch targets have min-h-[60px] for guitar-in-hand use
+  - Current song title displayed prominently at top of overlay
+  - Transpose resets to 0 when changing songs
+  - Added pointer-events-none when overlay is hidden to prevent ghost clicks
+- Files changed:
+  - src/app/mirror/page.tsx (expanded OverlayControls with all controls)
+- **Learnings for future iterations:**
+  - Use min-h-[60px] and min-w-[60px] for mobile touch targets (guitar-in-hand use case)
+  - Song picker pattern: toggle showSongPicker state, render scrollable list inside overlay
+  - For toggle buttons, use different bg colors to indicate active state (amber-500/30 vs white/10)
+  - Reset related state when changing context (e.g., transpose = 0 when song changes)
+  - Add pointer-events-none to hidden overlays to prevent click-through issues
+---

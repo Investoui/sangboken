@@ -112,6 +112,31 @@ function ChordDiagramPanel({
   );
 }
 
+// Tab Display component - for tablature format
+function TabDisplay({ song }: { song: Song }) {
+  return (
+    <div className="h-screen overflow-auto pb-[220px]">
+      <div className="p-8 pt-16">
+        {/* Song title */}
+        <div className="pb-4">
+          <h1 className="text-2xl font-bold text-white mb-1">{song.title}</h1>
+          {song.artist && (
+            <div className="text-white/50 text-lg">{song.artist}</div>
+          )}
+          {song.key && (
+            <div className="text-amber-400/60 text-sm mt-1">Key: {song.key}</div>
+          )}
+        </div>
+
+        {/* Tab content - monospace pre-formatted */}
+        <pre className="font-mono text-sm md:text-base lg:text-lg text-white/90 whitespace-pre overflow-x-auto leading-relaxed">
+          {song.rawTab}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
 // Song Display component
 function SongDisplay({
   song,
@@ -120,6 +145,11 @@ function SongDisplay({
   song: Song;
   transpose: number;
 }) {
+  // If it's a tab format, use TabDisplay
+  if (song.format === "tab" && song.rawTab) {
+    return <TabDisplay song={song} />;
+  }
+
   const sections = song.sections;
 
   return (
@@ -312,20 +342,22 @@ function OverlayControls({
             </button>
           </div>
 
-          {/* Toggle chord diagrams */}
-          <button
-            onClick={handleToggleChords}
-            className={`min-h-[60px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
-              showChordPanel
-                ? "bg-amber-500/30 text-amber-400"
-                : "bg-white/10 text-white/70 hover:bg-white/20"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m6 10V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
-            </svg>
-            <span className="text-sm font-medium">Chords</span>
-          </button>
+          {/* Toggle chord diagrams - only for ChordPro format */}
+          {currentSong.format !== "tab" && (
+            <button
+              onClick={handleToggleChords}
+              className={`min-h-[60px] px-4 flex items-center justify-center gap-2 rounded-xl transition-colors ${
+                showChordPanel
+                  ? "bg-amber-500/30 text-amber-400"
+                  : "bg-white/10 text-white/70 hover:bg-white/20"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m6 10V7m0 10a2 2 0 01-2 2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" />
+              </svg>
+              <span className="text-sm font-medium">Chords</span>
+            </button>
+          )}
         </div>
 
         {/* Song picker dropdown/list */}
@@ -342,7 +374,12 @@ function OverlayControls({
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{song.title}</div>
+                  <div className="font-medium truncate flex items-center gap-2">
+                    {song.title}
+                    {song.format === "tab" && (
+                      <span className="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded">TAB</span>
+                    )}
+                  </div>
                   {song.artist && (
                     <div className="text-sm text-white/50 truncate">{song.artist}</div>
                   )}
@@ -426,13 +463,15 @@ export default function MirrorPage() {
       {/* Song display */}
       <SongDisplay song={currentSong} transpose={transpose} />
 
-      {/* Chord diagram panel */}
-      <ChordDiagramPanel
-        sections={currentSong.sections}
-        transpose={transpose}
-        visible={showChordPanel}
-        onToggle={() => setShowChordPanel(!showChordPanel)}
-      />
+      {/* Chord diagram panel - only for ChordPro format */}
+      {currentSong.format !== "tab" && (
+        <ChordDiagramPanel
+          sections={currentSong.sections}
+          transpose={transpose}
+          visible={showChordPanel}
+          onToggle={() => setShowChordPanel(!showChordPanel)}
+        />
+      )}
 
       {/* Overlay controls - slides up on tap */}
       <OverlayControls

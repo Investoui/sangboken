@@ -1,0 +1,271 @@
+{
+  "project": "GuitarChords",
+  "branchName": "main",
+  "description": "Guitar Chords - Cast & Control MVP. Display chords on TV, control from phone via SSE.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Project setup with Next.js 15 + Tailwind",
+      "description": "As a developer, I need the base project structure ready.",
+      "acceptanceCriteria": [
+        "Initialize Next.js 15 with App Router, TypeScript, Tailwind CSS",
+        "Configure src/ directory structure",
+        "Create basic layout.tsx with dark theme defaults",
+        "Add eslint config",
+        "Typecheck passes",
+        "Dev server runs successfully"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Room creation API and state management",
+      "description": "As a user, I need rooms to be created with unique codes.",
+      "acceptanceCriteria": [
+        "POST /api/room creates a new room with 4-char uppercase code",
+        "Room state stored in memory Map with TTL (30 min inactive)",
+        "RoomState type includes: code, currentSong, currentSection, scrollPosition, transpose, controllers[]",
+        "GET /api/room/[code] returns room state or 404",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "SSE endpoint for display view",
+      "description": "As a display, I need to receive real-time updates from the server.",
+      "acceptanceCriteria": [
+        "GET /api/room/[code]/stream returns SSE connection",
+        "Sends 'state' event with full room state on connect",
+        "Sends 'update' event when room state changes",
+        "Handles client disconnect gracefully",
+        "Connection stays alive with keepalive pings every 15s",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Command endpoint for controller",
+      "description": "As a controller, I need to send commands to update room state.",
+      "acceptanceCriteria": [
+        "POST /api/room/[code]/command accepts JSON body",
+        "Supports commands: setSong, nextSection, prevSection, scroll, transpose, setAutoScroll",
+        "Updates room state and notifies SSE clients",
+        "Returns 404 if room not found",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Display view - basic chord rendering",
+      "description": "As a user, I want to see lyrics with chords on the TV display.",
+      "acceptanceCriteria": [
+        "Page at /room/[code] connects to SSE stream",
+        "Shows room code in top-right corner (fades after 10s)",
+        "Renders lyrics with chord names positioned above correct syllables",
+        "Chord names in amber/gold color, lyrics in white",
+        "Pure black background (#000)",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Chord diagram component with finger numbers",
+      "description": "As a user, I want to see chord fingering diagrams.",
+      "acceptanceCriteria": [
+        "ChordDiagram component renders 6-string fretboard grid",
+        "Shows finger positions as numbered dots (1-4)",
+        "Shows open (○) and muted (×) string indicators",
+        "Built-in chord library with common chords (C, D, E, G, A, Am, Em, Dm, F, Bm)",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "Display view - chord diagram panel",
+      "description": "As a user, I want to see chord diagrams on the display.",
+      "acceptanceCriteria": [
+        "Bottom panel shows current chord + next chord diagrams",
+        "Panel is ~200px height with semi-transparent background",
+        "Toggle button to show/hide panel",
+        "Diagrams update as song progresses",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Controller view - join and basic controls",
+      "description": "As a user, I want to connect my phone and control the display.",
+      "acceptanceCriteria": [
+        "Page at /join shows room code input",
+        "After joining, redirects to /control/[code]",
+        "Control page shows: prev/next section buttons, scroll slider",
+        "Commands sent via POST to /api/room/[code]/command",
+        "Mobile-first responsive design",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Song data model and sample songs",
+      "description": "As a user, I need songs to display.",
+      "acceptanceCriteria": [
+        "Song TypeScript interface with sections, lines, chord positions",
+        "3 sample songs with Norwegian children's songs (Kua mi, Bæ bæ lille lam, etc)",
+        "Songs stored in /lib/songs.ts",
+        "ChordPro parser utility (basic - [G]lyrics format)",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Controller view - song selection",
+      "description": "As a user, I want to select which song to display.",
+      "acceptanceCriteria": [
+        "Song list shown on controller",
+        "Tapping song sends setSong command",
+        "Current song highlighted",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Transpose functionality",
+      "description": "As a user, I want to transpose songs to different keys.",
+      "acceptanceCriteria": [
+        "+/- buttons on controller to transpose",
+        "Transpose value shown (-6 to +6)",
+        "Display updates chord names based on transpose",
+        "Chord diagrams update to match transposed chords",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Auto-scroll feature",
+      "description": "As a user, I want the display to auto-scroll through the song.",
+      "acceptanceCriteria": [
+        "Auto-scroll toggle on controller",
+        "Speed slider (slow/medium/fast)",
+        "Display smoothly scrolls when enabled",
+        "Stops at end of song",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Landing page with room creation",
+      "description": "As a user, I want a simple landing page to start.",
+      "acceptanceCriteria": [
+        "Page at / shows 'Create Room' button",
+        "Creating room redirects to /room/[code]",
+        "Shows instructions: 'Open this URL on your TV, then join from your phone'",
+        "QR code showing /join URL for easy phone access",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-014",
+      "title": "Home page mode selection",
+      "description": "As a user, I want to choose between Mirror Mode and Room Mode on the home page.",
+      "acceptanceCriteria": [
+        "Update / page to show two mode options",
+        "Mirror Mode button - links to /mirror",
+        "Room Mode button - links to existing room creation flow",
+        "Brief description of each mode (Mirror = AirPlay/screen mirror, Room = separate controller)",
+        "Clean, simple design with large touch targets",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-015",
+      "title": "Mirror Mode - basic display",
+      "description": "As a user, I want a single-screen experience optimized for AirPlay mirroring.",
+      "acceptanceCriteria": [
+        "New page at /mirror route",
+        "Full-screen landscape-optimized song display",
+        "Reuse existing SongDisplay and ChordDiagram components",
+        "Black background, large readable text",
+        "Shows first song from library by default",
+        "Chord diagram panel at bottom (showing all unique chords)",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-016",
+      "title": "Mirror Mode - overlay controls",
+      "description": "As a user, I want to tap the screen to show controls while in Mirror Mode.",
+      "acceptanceCriteria": [
+        "Tap anywhere on screen shows overlay controls",
+        "Overlay auto-hides after 3 seconds of no interaction",
+        "Semi-transparent overlay slides up from bottom",
+        "Smooth slide-in and fade-out animations",
+        "Any interaction resets the 3-second timer",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-017",
+      "title": "Mirror Mode - control panel contents",
+      "description": "As a user, I want full controls in the overlay panel.",
+      "acceptanceCriteria": [
+        "Song picker - scrollable list or dropdown to select song",
+        "Previous/Next song buttons",
+        "Transpose +/- buttons with current value displayed",
+        "Toggle chord diagrams on/off",
+        "All touch targets minimum 60px height (guitar-in-hand use)",
+        "Current song title displayed prominently",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": true,
+      "notes": ""
+    }
+  ]
+}
