@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { RoomState, RoomCommand } from "@/lib/types";
+import { getAllSongs } from "@/lib/songs";
 
 export default function ControllerPage({
   params,
@@ -113,11 +114,43 @@ export default function ControllerPage({
         </div>
       </div>
 
-      {/* Current song display */}
+      {/* Song selection */}
+      <div className="mb-6">
+        <div className="text-white/60 text-sm mb-3">Select Song</div>
+        <div className="space-y-2">
+          {getAllSongs().map((song) => (
+            <button
+              key={song.id}
+              onClick={() => sendCommand({ type: "setSong", songId: song.id })}
+              className={`w-full text-left p-4 rounded-lg transition-colors ${
+                roomState.currentSong === song.id
+                  ? "bg-amber-400/20 border border-amber-400/50"
+                  : "bg-white/5 hover:bg-white/10 active:bg-white/15"
+              }`}
+            >
+              <div className={`font-medium ${
+                roomState.currentSong === song.id ? "text-amber-400" : "text-white"
+              }`}>
+                {song.title}
+              </div>
+              {song.artist && (
+                <div className="text-white/40 text-sm mt-0.5">{song.artist}</div>
+              )}
+              {song.key && (
+                <div className="text-white/30 text-xs mt-1">Key: {song.key}</div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Current section info */}
       <div className="bg-white/5 rounded-lg p-4 mb-6">
         <div className="text-white/40 text-sm mb-1">Now Playing</div>
         <div className="text-lg">
-          {roomState.currentSong || (
+          {roomState.currentSong ? (
+            getAllSongs().find(s => s.id === roomState.currentSong)?.title || roomState.currentSong
+          ) : (
             <span className="text-white/30">No song selected</span>
           )}
         </div>
