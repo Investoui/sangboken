@@ -10,31 +10,48 @@ import { Logo } from "@/components/Logo";
 interface ChordLineProps {
   line: SongLine;
   transpose: number;
+  inColumns?: boolean;
 }
 
-function ChordLine({ line, transpose }: ChordLineProps) {
+function ChordLine({ line, transpose, inColumns = false }: ChordLineProps) {
   const chordPositions = line.chords.map((c) => ({
     ...c,
     position: Math.min(c.position, line.lyrics.length - 1),
     displayChord: transposeChord(c.chord, transpose),
   }));
 
+  // Build chord line as a string with spaces for proper alignment
+  // This avoids absolute positioning issues with CSS columns
+  const buildChordString = () => {
+    if (chordPositions.length === 0) return "";
+
+    let result = "";
+    let currentPos = 0;
+
+    for (const chord of chordPositions) {
+      // Add spaces to reach the chord position
+      while (currentPos < chord.position) {
+        result += " ";
+        currentPos++;
+      }
+      // Add the chord
+      result += chord.displayChord;
+      currentPos += chord.displayChord.length;
+    }
+
+    return result;
+  };
+
+  const chordString = buildChordString();
+
   return (
-    <div className="relative mb-2">
+    <div className={`mb-2 ${inColumns ? "overflow-hidden" : ""}`}>
       {/* Chord row */}
-      <div className="relative h-[1.2em] font-mono text-[0.9em]">
-        {chordPositions.map((c, idx) => (
-          <span
-            key={idx}
-            className="absolute chord font-bold"
-            style={{
-              left: `${c.position}ch`,
-            }}
-          >
-            {c.displayChord}
-          </span>
-        ))}
-      </div>
+      {chordString && (
+        <div className="font-mono text-[0.9em] chord font-bold whitespace-pre">
+          {chordString}
+        </div>
+      )}
       {/* Lyrics row */}
       <div className="font-mono text-[1em] text-[var(--text-primary)] whitespace-pre">
         {line.lyrics}
@@ -258,7 +275,7 @@ function SongDisplay({
             <div key={sectionIdx} className={sectionItemClass}>
               <div className="section-label mb-2">{section.name}</div>
               {section.lines.map((line, lineIdx) => (
-                <ChordLine key={lineIdx} line={line} transpose={transpose} />
+                <ChordLine key={lineIdx} line={line} transpose={transpose} inColumns={useColumns} />
               ))}
             </div>
           ))}
