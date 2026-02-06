@@ -6,8 +6,8 @@ import { ChordDiagram } from "@/components/ChordDiagram";
 import { chordLibrary } from "@/lib/chord-library";
 import { Logo } from "@/components/Logo";
 
-// Group chords by their root note
-const rootNotes = ["C", "D", "E", "F", "G", "A", "B"] as const;
+// Group chords by their root note (including H for Scandinavian notation)
+const rootNotes = ["C", "D", "E", "F", "G", "A", "B", "H"] as const;
 
 // Get all chord names and group them
 function groupChordsByRoot() {
