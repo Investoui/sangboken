@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run build:songs && next build",
+    "build": "npm run build:songs && npm run build:icons && next build",
     "build:songs": "npx tsx scripts/build-songs.ts",
+    "build:icons": "npx tsx scripts/build-icons.ts",
     "start": "next start",
     "lint": "eslint"
   },
@@ -23,6 +24,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

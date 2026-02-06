@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-02-06
+- **PWA icons** - Genererer PNG-ikoner fra SVG for bedre støtte på home screen
+
 ## 2026-02-05
 - **Mirror Mode** - Single-screen modus for AirPlay/skjermdeling
 - **Adaptiv layout** - Korte vers vises i kolonner, lange vers scroller vertikalt
