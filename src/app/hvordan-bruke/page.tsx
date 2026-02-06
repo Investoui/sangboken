@@ -234,6 +234,43 @@ export default function HowToUsePage() {
             </div>
           </section>
 
+          {/* Install as app */}
+          <section className="card p-6 mb-10">
+            <div className="flex items-start gap-4">
+              <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--bg-elevated)] text-xl flex-shrink-0">
+                📲
+              </span>
+              <div>
+                <h2 className="text-xl font-display font-semibold text-[var(--text-primary)] mb-2">
+                  Installer som app
+                </h2>
+                <p className="text-[var(--text-secondary)] leading-relaxed mb-3">
+                  Legg Sangboken på hjemskjermen for raskere tilgang – uten å åpne
+                  nettleseren først.
+                </p>
+                <Link
+                  href="/installer"
+                  className="inline-flex items-center gap-2 text-[var(--accent-primary)] font-medium hover:underline"
+                >
+                  Se hvordan
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </section>
+
           {/* Tips */}
           <section className="card p-6 bg-[var(--accent-muted)] border-[var(--accent-primary)]/20">
             <h2 className="text-xl font-display font-semibold text-[var(--accent-primary)] mb-4">

@@ -228,11 +228,14 @@ export default function InstallerPage() {
               </span>
               <div className="flex-1">
                 <p className="text-[var(--text-primary)]">
-                  Bla ned og trykk{" "}
+                  <strong>Bla ned</strong> i menyen til du ser{" "}
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--bg-base)] rounded border border-[var(--border-subtle)]">
                     <PlusSquareIcon className="w-4 h-4" />
                     Legg til på Hjem-skjerm
                   </span>
+                </p>
+                <p className="text-sm text-[var(--text-tertiary)] mt-1">
+                  Den er ofte skjult lenger ned i lista – fortsett å bla!
                 </p>
               </div>
             </li>
