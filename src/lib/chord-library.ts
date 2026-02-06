@@ -2469,6 +2469,77 @@ export const chordLibrary: Record<string, ChordFingering> = {
       toString: 5,
     },
   },
+
+  // ============================================
+  // SCANDINAVIAN NOTATION (H = B natural)
+  // ============================================
+  H: {
+    name: "H",
+    frets: [-1, 2, 4, 4, 4, 2],
+    fingers: [-1, 1, 2, 3, 4, 1],
+    baseFret: 2,
+    barre: {
+      fret: 2,
+      fromString: 1,
+      toString: 5,
+    },
+  },
+  Hm: {
+    name: "Hm",
+    frets: [-1, 2, 4, 4, 3, 2],
+    fingers: [-1, 1, 3, 4, 2, 1],
+    baseFret: 2,
+    barre: {
+      fret: 2,
+      fromString: 1,
+      toString: 5,
+    },
+  },
+  H7: {
+    name: "H7",
+    frets: [-1, 2, 1, 2, 0, 2],
+    fingers: [-1, 2, 1, 3, 0, 4],
+    baseFret: 1,
+  },
+  Hm7: {
+    name: "Hm7",
+    frets: [-1, 2, 4, 2, 3, 2],
+    fingers: [-1, 1, 3, 1, 2, 1],
+    baseFret: 2,
+    barre: {
+      fret: 2,
+      fromString: 1,
+      toString: 5,
+    },
+  },
+  Hmaj7: {
+    name: "Hmaj7",
+    frets: [-1, 2, 4, 3, 4, 2],
+    fingers: [-1, 1, 3, 2, 4, 1],
+    baseFret: 2,
+    barre: {
+      fret: 2,
+      fromString: 1,
+      toString: 5,
+    },
+  },
+  Hsus4: {
+    name: "Hsus4",
+    frets: [-1, 2, 4, 4, 5, 2],
+    fingers: [-1, 1, 2, 3, 4, 1],
+    baseFret: 2,
+    barre: {
+      fret: 2,
+      fromString: 1,
+      toString: 5,
+    },
+  },
+  Hdim: {
+    name: "Hdim",
+    frets: [-1, 2, 3, 4, 3, -1],
+    fingers: [-1, 1, 2, 4, 3, -1],
+    baseFret: 2,
+  },
 };
 
 export function getChord(name: string): ChordFingering | null {
